@@ -47,8 +47,10 @@ public class AuthUser {
 
 	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(name = "member_roles", // 여기서 테이블 이름을 소문자로 지정
-			joinColumns = @JoinColumn(name = "member_id") // 외래키 컬럼명도 지정 가능
-	)
+			joinColumns = @JoinColumn(name = "member_id"), // 외래키 컬럼명도 지정 가능
+			indexes = {
+					// member_id와 role_name을 묶어서 복합 인덱스 생성 (조회 성능 향상)
+					@jakarta.persistence.Index(name = "IDX_member_roles_id_name", columnList = "member_id, role_name", unique = true) })
 	@Column(name = "role_name") // 권한 값이 저장되는 컬럼명도 소문자로 지정 가능
 	@Builder.Default
 	private List<String> roles = new ArrayList<>();
