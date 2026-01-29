@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.Comment;
 
 import com.study.lastlayer.authUser.AuthUser;
 import com.study.lastlayer.file.File;
@@ -54,25 +55,30 @@ public class Member {
 	@Column(nullable = false)
 	private Float weight;
 
-	@Column(nullable = false, comment = "목표 날짜. 몇 일 동안에 빼고 싶은가")
+	@Column(nullable = false)
+	@Comment("목표 날짜. 몇 일 동안에 빼고 싶은가")
 	private Integer target_date;
 
-	@Column(nullable = false, comment = "목표 체중을 달성 하기 위한 하루 섭취 칼로리 (kcal)")
+	@Column(nullable = false)
+	@Comment("목표 체중을 달성 하기 위한 하루 섭취 칼로리 (kcal)")
 	private Integer daily_calories;
 
-	@Column(nullable = false, comment = "1개만 선택 : 중 감량, 건강 유지, 근육량 증가, 혈당 관리, 콜레스테롤 관리")
+	@Column(nullable = false)
+	@Comment("1개만 선택 : 중 감량, 건강 유지, 근육량 증가, 혈당 관리, 콜레스테롤 관리")
 	private String goal;
 
 	@Column(nullable = false)
 	private Float goal_weight;
 
-	@Column(nullable = false, comment = "식단에서 피해야 할 음식 리스트. 예)갑각류,콩류")
+	@Column(nullable = false)
 	@ColumnDefault("''")
+	@Comment("식단에서 피해야 할 음식 리스트. 예)갑각류,콩류")
 	@Builder.Default
 	private String allergies = "";
 
-	@Column(nullable = false, comment = "특이사항. 예) 고기 안먹음.")
+	@Column(nullable = false)
 	@ColumnDefault("''")
+	@Comment("특이사항. 예) 고기 안먹음.")
 	@Builder.Default
 	private String special_notes = "";
 

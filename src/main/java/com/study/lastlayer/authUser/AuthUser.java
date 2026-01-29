@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hibernate.annotations.Comment;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.CollectionTable;
@@ -42,7 +44,8 @@ public class AuthUser {
 
 	@ToString.Exclude // Lombok, 사용한다면 toString() 호출 시 비밀번호가 로그에 찍히지 않도록 반드시 제외
 	@JsonIgnore
-	@Column(nullable = false, comment = "BCrypt 암호화 비밀번호")
+	@Column(nullable = false)
+	@Comment("BCrypt 암호화 비밀번호")
 	private String password;
 
 	@ElementCollection(fetch = FetchType.EAGER)

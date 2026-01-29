@@ -2,6 +2,8 @@ package com.study.lastlayer.meal.mealitem;
 
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.Comment;
+
 import com.study.lastlayer.meal.Meal;
 
 import jakarta.persistence.Column;
@@ -35,10 +37,12 @@ public class MealItem {
 	@Column(nullable = false)
 	private String name;
 
-	@Column(nullable = false, comment = "섭취량 (g)")
+	@Column(nullable = false)
+	@Comment("섭취량 (g)")
 	private Integer amount;
 
-	@Column(nullable = false, comment = "해당 음식의 칼로리 (kcal)")
+	@Column(nullable = false)
+	@Comment("해당 음식의 칼로리 (kcal)")
 	private Integer calories;
 
 	@Column(nullable = false)
