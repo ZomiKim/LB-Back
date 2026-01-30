@@ -5,11 +5,16 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import com.study.lastlayer.auth.AuthService;
+import com.study.lastlayer.auth.CustomUserPrincipal;
 
 record RoleRequest(String roleName) {
+}
+
+record RoleRespones(String roleName, String jwt) {
 }
 
 @RestController
@@ -17,14 +22,18 @@ public class AuthUserController {
 	@Autowired
 	private AuthUserService authUserService;
 
+	@Autowired
+	private AuthService authService;
+
 	@PreAuthorize("isAuthenticated()")
 	@PostMapping("/auth/role")
 	@Transactional
-	public void addRole(@AuthenticationPrincipal com.study.lastlayer.auth.CustomUserPrincipal principal,
+	public RoleRespones addRole(@AuthenticationPrincipal CustomUserPrincipal principal,
 			@RequestBody RoleRequest request) {
 		// 서비스의 로직을 호출 (BadRequestException 등은 ControllerAdvice에서 처리 권장)
 		authUserService.addRole(principal.getMemberId(), request.roleName());
+		RoleRespones r = new RoleRespones(request.roleName(), authService.createToken(principal.getUsername()));
 
-		return;
+		return r;
 	}
 }

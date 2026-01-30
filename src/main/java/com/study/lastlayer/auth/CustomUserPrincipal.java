@@ -21,6 +21,11 @@ public class CustomUserPrincipal implements UserDetails {
 		this.roles = roles;
 	}
 
+	// "ROLE_" 는 제외 하고 호출
+	public boolean hasRole(String roleName) {
+		return this.roles.contains("ROLE_" + roleName);
+	}
+
 	public Long getMemberId() {
 		return memberId;
 	}
