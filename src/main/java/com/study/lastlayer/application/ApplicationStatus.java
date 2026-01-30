@@ -6,3 +6,4 @@ public enum ApplicationStatus {
     APPROVED,  // 승인
     REJECTED   // 거절
 }
+

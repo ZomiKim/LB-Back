@@ -23,14 +23,14 @@ public class Application {
     private Long id; // 식별자 (PK)
 
     // 신청한 회원
-    @ManyToOne
-    @JoinColumn
-    private Member member;
+    @ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "member_id", nullable = false)
+	private Member member;
 
     // 신청한 클럽
-    @ManyToOne
-    @JoinColumn
-    private Club club;
+    @ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "club_id", nullable = false)
+	private Club club;
 
     // 상태 (P, A, R)
     @Enumerated(EnumType.STRING)

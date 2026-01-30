@@ -1,6 +1,9 @@
 package com.study.lastlayer.club;
 
 
+import com.study.lastlayer.file.File;
+import com.study.lastlayer.member.Member;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,11 +25,16 @@ public class Club {
     @Column
     private String description; 
 
-    @Column
-    private Long managerId; 
+  
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "managerId", nullable = false)
+	private Member member;
 
-    @Column
-    private Long bgFileId; 
+  
+	@OneToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name="bgFileId")
+	private File file;
+    
 
     @Column
     private String keywords; 

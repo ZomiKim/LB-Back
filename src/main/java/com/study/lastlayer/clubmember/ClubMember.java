@@ -21,12 +21,12 @@ public class ClubMember {
     private Long id;
 
     // 클럽
-    @ManyToOne
-    @JoinColumn
-    private Club club;
+    @ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "club_id", nullable = false)
+	private Club club;
 
     // 회원
-    @ManyToOne
-    @JoinColumn
-    private Member member;
+    @ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "member_id", nullable = false)
+	private Member member;
 }
