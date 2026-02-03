@@ -3,6 +3,7 @@ package com.study.lastlayer.meal;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.Comment;
 
 import com.study.lastlayer.file.File;
 
@@ -16,6 +17,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,14 +36,15 @@ public class Meal {
 	/**
 	 * 식사 유형 (B: 아침, L: 점심, D: 저녁)
 	 */
-	@Column(name = "meal_type", length = 1, nullable = false)
+	@Column(length = 1, nullable = false)
+	@Comment("B: 아침, L: 점심, D: 저녁, S:간식")
 	private char mealType;
 
-	@Column(name = "menu", nullable = false)
+	@Column(nullable = false)
 	@ColumnDefault("''")
 	private String menu = "";
 
-	@Column(name = "total_calories", nullable = false)
+	@Column(nullable = false)
 	@ColumnDefault("0")
 	private Integer totalCalories;
 
@@ -57,4 +60,23 @@ public class Meal {
 	public void onCreated() {
 		this.createdAt = LocalDateTime.now();
 	}
+
+	@Column(nullable = false)
+	private LocalDateTime updatedAt;
+
+	@PreUpdate
+	public void onUpdatedd() {
+		this.updatedAt = LocalDateTime.now();
+	}
+
+	@ColumnDefault("0")
+	private Integer carbohydrate;
+	@ColumnDefault("0")
+	private Integer fat;
+	@ColumnDefault("0")
+	private Integer protein;
+
+	@Column(nullable = false)
+	@ColumnDefault("''")
+	private String comment = "";
 }

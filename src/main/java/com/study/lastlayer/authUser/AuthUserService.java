@@ -12,7 +12,7 @@ public class AuthUserService {
 	private AuthUserRepository authUserRepository;
 
 	@Transactional
-	public void addRole(Long memberId, String newRole) {
+	public void addRole(Long memberId, MemberRole newRole) {
 		AuthUser user = authUserRepository.findById(memberId)
 				.orElseThrow(() -> new BadRequestException(String.format("memberId[%d] 없음", memberId)));
 		// 중복 체크

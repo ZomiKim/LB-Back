@@ -8,6 +8,8 @@ import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Value;
 
+import com.study.lastlayer.authUser.MemberRole;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -29,16 +31,16 @@ public class JwtUtil {
 	}
 
 	@SuppressWarnings("unchecked")
-	public List<String> extractRoles(Claims claims) {
+	public List<MemberRole> extractRoles(Claims claims) {
 		// claims.get()의 결과가 Object이므로 List로 캐스팅합니다.
-		return (List<String>) claims.get("roles");
+		return (List<MemberRole>) claims.get("roles");
 	}
 
 	@Value("${jwt.expiration}")
 	private long expirationTime;
 
 	// --- JWT 발행
-	public String createToken(String email, Long memberId, List<String> roles) {
+	public String createToken(String email, Long memberId, List<MemberRole> roles) {
 		Claims claims = Jwts.claims().setSubject(email);
 		claims.put("memberId", memberId); // Long형 ID 저장
 		claims.put("roles", roles); // 권한 정보 추가

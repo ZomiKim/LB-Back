@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -21,7 +22,10 @@ public class SecurityConfig {
 		return http.csrf(csrf -> csrf.disable()) // JWT는 stateless하므로 csrf(Cross-Site Request Forgery, 사이트 간 요청 위조) 불필요
 				.authorizeHttpRequests(auth -> auth.anyRequest().permitAll()).formLogin(form -> form.disable())
 				.httpBasic(httpBasic -> httpBasic.disable())
-				.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class).build();
+				.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+				.sessionManagement(
+						sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 서버가 세션을 관리하지 않겠다
+				.build();
 	}
 
 	@Bean

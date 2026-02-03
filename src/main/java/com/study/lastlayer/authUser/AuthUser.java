@@ -22,7 +22,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
@@ -31,10 +31,14 @@ import lombok.ToString;
 		@UniqueConstraint(name = "UK_auth_user__email", columnNames = { "email" } // DB 컬럼 이름
 		) })
 @Builder
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
 public class AuthUser {
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -48,15 +52,16 @@ public class AuthUser {
 	@Comment("BCrypt 암호화 비밀번호")
 	private String password;
 
-	@ElementCollection(fetch = FetchType.EAGER)
+	@ElementCollection(fetch = FetchType.LAZY) // 엔티티(Entity)가 아닌 단순한 값들을 리스트나 셋으로 관리하고 싶을 때
 	@CollectionTable(name = "member_roles", // 여기서 테이블 이름을 소문자로 지정
 			joinColumns = @JoinColumn(name = "member_id"), // 외래키 컬럼명도 지정 가능
 			indexes = {
 					// member_id와 role_name을 묶어서 복합 인덱스 생성 (조회 성능 향상)
-					@jakarta.persistence.Index(name = "IDX_member_roles_id_name", columnList = "member_id, role_name", unique = true) })
-	@Column(name = "role_name") // 권한 값이 저장되는 컬럼명도 소문자로 지정 가능
+					@jakarta.persistence.Index(name = "IDX_member_roles_id_role", columnList = "member_id, role", unique = true) })
+	@Column(name = "role") // 권한 값이 저장되는 컬럼명도 소문자로 지정 가능
 	@Builder.Default
-	private List<String> roles = new ArrayList<>();
+	@ToString.Exclude
+	private List<MemberRole> roles = new ArrayList<>();
 
 	@Column(nullable = false)
 	private LocalDateTime createdAt;

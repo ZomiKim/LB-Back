@@ -2,6 +2,7 @@ package com.study.lastlayer.meal.mealitem;
 
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Comment;
 
 import com.study.lastlayer.meal.Meal;
@@ -16,6 +17,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -52,4 +54,19 @@ public class MealItem {
 	public void onCreated() {
 		this.createdAt = LocalDateTime.now();
 	}
+
+	@Column(nullable = false)
+	private LocalDateTime updatedAt;
+
+	@PreUpdate
+	public void onUpdatedd() {
+		this.updatedAt = LocalDateTime.now();
+	}
+
+	@ColumnDefault("0")
+	private Integer carbohydrate;
+	@ColumnDefault("0")
+	private Integer fat;
+	@ColumnDefault("0")
+	private Integer protein;
 }

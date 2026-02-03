@@ -20,12 +20,14 @@ public class AuthService {
 		this.passwordEncoder = passwordEncoder;
 	}
 
+	@Transactional(readOnly = true)
 	public String createToken(String email) {
 		AuthUser user = authUserRepository.findByEmail(email)
 				.orElseThrow(() -> new BadRequestException("이메일을 찾을 수 없습니다."));
 		return jwtUtil.createToken(user.getEmail(), user.getId(), user.getRoles());
 	}
 
+	@Transactional(readOnly = true)
 	public String login(String email, String password) {
 		// 1. 레코드를 통해 DB에서 사용자 조회
 		AuthUser user = authUserRepository.findByEmail(email)
