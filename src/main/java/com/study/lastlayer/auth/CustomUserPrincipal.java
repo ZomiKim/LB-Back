@@ -9,7 +9,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.study.lastlayer.authUser.MemberRole;
+import com.study.lastlayer.authuser.MemberRole;
 
 public class CustomUserPrincipal implements UserDetails {
 	private static final long serialVersionUID = 1L; // ✅ 추가
@@ -23,7 +23,6 @@ public class CustomUserPrincipal implements UserDetails {
 		this.roles = roles;
 	}
 
-	// "ROLE_" 는 제외 하고 호출
 	public boolean hasRole(MemberRole role) {
 		return this.roles.contains(role);
 	}

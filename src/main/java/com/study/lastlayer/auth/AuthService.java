@@ -4,8 +4,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.study.lastlayer.authUser.AuthUser;
-import com.study.lastlayer.authUser.AuthUserRepository;
+import com.study.lastlayer.authuser.AuthUser;
+import com.study.lastlayer.authuser.AuthUserRepository;
 import com.study.lastlayer.exception.BadRequestException;
 
 @Service

@@ -1,4 +1,4 @@
-package com.study.lastlayer.authUser;
+package com.study.lastlayer.authuser;
 
 import java.util.Optional;
 

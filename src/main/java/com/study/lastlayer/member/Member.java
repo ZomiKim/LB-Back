@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Comment;
 
-import com.study.lastlayer.authUser.AuthUser;
+import com.study.lastlayer.authuser.AuthUser;
 import com.study.lastlayer.file.File;
 
 import jakarta.persistence.Column;

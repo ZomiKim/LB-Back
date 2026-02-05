@@ -1,4 +1,4 @@
-package com.study.lastlayer.authUser;
+package com.study.lastlayer.authuser;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;

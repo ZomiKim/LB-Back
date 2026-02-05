@@ -8,7 +8,7 @@ import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Value;
 
-import com.study.lastlayer.authUser.MemberRole;
+import com.study.lastlayer.authuser.MemberRole;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
