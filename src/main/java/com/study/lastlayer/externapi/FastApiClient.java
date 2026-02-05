@@ -19,7 +19,6 @@ public class FastApiClient {
 		this.apiPrefix = apiPrefix;
 		this.restTemplate = builder.requestFactory(() -> {
 			SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-			// static 필드 사용
 			factory.setConnectTimeout(connectTimeout);
 			factory.setReadTimeout(readTimeout);
 			return factory;

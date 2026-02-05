@@ -19,8 +19,15 @@ import com.study.lastlayer.auth.JwtAuthFilter;
 public class SecurityConfig {
 	@Bean
 	SecurityFilterChain filterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
-		return http.csrf(csrf -> csrf.disable()) // JWT는 stateless하므로 csrf(Cross-Site Request Forgery, 사이트 간 요청 위조) 불필요
-				.authorizeHttpRequests(auth -> auth.anyRequest().permitAll()).formLogin(form -> form.disable())
+		http.csrf(config -> config.disable());
+		http.cors(config -> config.disable());
+		http.formLogin(config -> {
+			config.loginPage("/auth/login");
+			//			config.successHandler(new APILoginSuccessHandler());
+			//			config.failureHandler(new APILoginFailHandler());
+		});
+
+		return http.authorizeHttpRequests(auth -> auth.anyRequest().permitAll()).formLogin(form -> form.disable())
 				.httpBasic(httpBasic -> httpBasic.disable())
 				.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
 				.sessionManagement(
