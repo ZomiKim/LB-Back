@@ -43,8 +43,12 @@ public class Member {
 	private AuthUser authUser;
 
 	@Column(nullable = false)
-	@ColumnDefault("0")
-	private int notificationCount;
+	@ColumnDefault("''")
+	private String name;
+
+	@Column(nullable = false)
+	@ColumnDefault("''")
+	private String phone;
 
 	@Column(nullable = false)
 	private String gender; // "M", "W" 문자열로 저장
@@ -58,10 +62,6 @@ public class Member {
 	@Column(nullable = false)
 	@Comment("목표 날짜. 몇 일 동안에 빼고 싶은가")
 	private Integer target_date;
-
-	@Column(nullable = false)
-	@Comment("목표 체중을 달성 하기 위한 하루 섭취 칼로리 (kcal)")
-	private Integer daily_calories;
 
 	@Column(nullable = false)
 	@Comment("1개만 선택 : 중 감량, 건강 유지, 근육량 증가, 혈당 관리, 콜레스테롤 관리")
@@ -82,15 +82,24 @@ public class Member {
 	@Builder.Default
 	private String special_notes = "";
 
-	@Column(nullable = false)
-	@ColumnDefault("0")
-	@Builder.Default
-	private Long point = 0L;
-
 	// @OneToOne이 맞지만 그렇게 되면 file_id를 중복 해서 사용할 수 없기 떄문에 테스트 할 때 불편 함.
 	@ManyToOne
 	@JoinColumn(name = "file_id", nullable = true, unique = false, foreignKey = @ForeignKey(name = "fk_member__file_id"))
 	private File profileImage;
+
+	//////////// 
+	@Column(nullable = false)
+	@ColumnDefault("0")
+	private int notificationCount;
+
+	@Column(nullable = false)
+	@Comment("목표 체중을 달성 하기 위한 하루 섭취 칼로리 (kcal)")
+	private Integer daily_calories;
+
+	@Column(nullable = false)
+	@ColumnDefault("0")
+	@Builder.Default
+	private Long point = 0L;
 
 	@Column(nullable = false)
 	private LocalDateTime createdAt;

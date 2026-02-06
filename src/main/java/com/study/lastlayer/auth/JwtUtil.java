@@ -40,10 +40,11 @@ public class JwtUtil {
 	private long expirationTime;
 
 	// --- JWT 발행
-	public String createToken(String email, Long memberId, List<MemberRole> roles) {
+	public String createToken(String email, Long memberId, List<MemberRole> roles, String name) {
 		Claims claims = Jwts.claims().setSubject(email);
 		claims.put("memberId", memberId); // Long형 ID 저장
 		claims.put("roles", roles); // 권한 정보 추가
+		claims.put("name", name);
 
 		Date now = new Date();
 		Date expiryDate = new Date(now.getTime() + expirationTime * 60 * 1000L);

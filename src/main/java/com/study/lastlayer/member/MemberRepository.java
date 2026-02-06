@@ -26,10 +26,4 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
 	public Optional<Member> findById(Long id);
 
-	@Query(value = """
-			SELECT email
-			FROM public.member m WHERE m.id = :memberId
-			""", nativeQuery = true)
-	String getEmailById(@Param("memberId") Long memberId);
-
 }
