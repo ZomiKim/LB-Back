@@ -52,4 +52,15 @@ public class JwtUtil {
 		return Jwts.builder().setClaims(claims).setIssuedAt(now).setExpiration(expiryDate)
 				.signWith(secretKey, SignatureAlgorithm.HS256).compact();
 	}
+
+	// --- JWT 발행
+	public String createToken(String email, Long expirationTimeMin) {
+		Claims claims = Jwts.claims().setSubject(email);
+
+		Date now = new Date();
+		Date expiryDate = new Date(now.getTime() + expirationTimeMin * 60 * 1000L);
+
+		return Jwts.builder().setClaims(claims).setIssuedAt(now).setExpiration(expiryDate)
+				.signWith(secretKey, SignatureAlgorithm.HS256).compact();
+	}
 }

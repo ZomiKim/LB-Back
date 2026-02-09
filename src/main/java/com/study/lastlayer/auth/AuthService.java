@@ -16,6 +16,8 @@ import com.study.lastlayer.exception.BadRequestException;
 import com.study.lastlayer.member.Member;
 import com.study.lastlayer.member.MemberRepository;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 record SignupRequest(
 		// AuthUser 정보
 		String email, String password,
@@ -50,13 +52,13 @@ public class AuthService {
 	}
 
 	@Transactional(readOnly = true)
-	public AuthUserDto login(String email, String password) {
+	public AuthUserDto login(String email, String password, HttpServletResponse response) {
 		// 1. DTO 프로젝션으로 사용자 정보 조회 (Member 정보 포함)
 		AuthUserDto userDto = authUserRepository.findUserAuthByEmail(email)
 				.orElseThrow(() -> new BadRequestException("이메일을 찾을 수 없습니다."));
 
 		// 2. 비밀번호 일치 여부 확인
-		if (!passwordEncoder.matches(password, userDto.getPassword())) {
+		if (password != null && !passwordEncoder.matches(password, userDto.getPassword())) {
 			throw new BadRequestException("비밀번호가 일치하지 않습니다.");
 		}
 
@@ -69,7 +71,20 @@ public class AuthService {
 		userDto.setAccessToken(
 				jwtUtil.createToken(userDto.getEmail(), userDto.getId(), userDto.getRoles(), userDto.getName()));
 
+		setRefreshToken(email, response);
 		return userDto;
+	}
+
+	void setRefreshToken(String email, HttpServletResponse response) {
+		// 2. RefreshToken을 쿠키로 굽기
+		String refreshToken = jwtUtil.createToken(email, 60 * 24L); // 24시간
+
+		jakarta.servlet.http.Cookie refreshTokenCookie = new jakarta.servlet.http.Cookie("refreshToken", refreshToken);
+		refreshTokenCookie.setHttpOnly(true);
+		refreshTokenCookie.setPath("/");
+		refreshTokenCookie.setMaxAge(60 * 60 * 24); // 24시간
+		refreshTokenCookie.setAttribute("SameSite", "Lax"); // Lax : 외부 사이트에서 링크 클릭 (GET) 허용. 예) 이메일로 "비밀번호 변경" 링크
+		response.addCookie(refreshTokenCookie);
 	}
 
 	@Transactional
