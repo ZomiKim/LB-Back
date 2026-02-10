@@ -1,5 +1,7 @@
 package com.study.lastlayer.board;
 
+import java.time.LocalDateTime;
+
 import com.study.lastlayer.club.Club;
 import com.study.lastlayer.file.File;
 import com.study.lastlayer.member.Member;
@@ -13,6 +15,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.*;
 
@@ -60,5 +64,24 @@ public class Board {
 	
 	@Column(nullable = false)
 	private Integer board_type;
+	
+	@Column(nullable = false)
+	private LocalDateTime createdAt;
+
+	@Column(nullable = false)
+	private LocalDateTime updatedAt;
+	
+	
+	@PrePersist
+	public void onCreated() {
+		this.createdAt = LocalDateTime.now();
+		 this.updatedAt = LocalDateTime.now();
+	}
+	
+	@PreUpdate
+	public void onUpdate() {
+	    this.updatedAt = LocalDateTime.now();
+	}
+
 	
 }
