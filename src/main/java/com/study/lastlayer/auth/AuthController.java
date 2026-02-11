@@ -4,8 +4,11 @@ import java.util.Map;
 
 import org.hibernate.annotations.Comment;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,6 +33,21 @@ public class AuthController {
 
 	@Autowired
 	private JwtUtil jwtUtil;
+
+	@PostMapping("/logout")
+	public ResponseEntity<?> logout(HttpServletResponse response) {
+		// 기존 쿠키와 동일한 설정(Path, Domain 등)으로 만료 쿠키 생성
+		ResponseCookie cookie = ResponseCookie.from("refreshToken", null)
+				.path("/")
+				.httpOnly(true)
+				.secure(true)
+				.maxAge(0) // 유효기간을 0으로 설정하여 삭제 유도
+				.build();
+
+		response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+		SecurityContextHolder.clearContext();
+		return ResponseEntity.ok().body("Logged out successfully");
+	}
 
 	@PostMapping("/login")
 	public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletResponse response) {

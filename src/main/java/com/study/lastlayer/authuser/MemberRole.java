@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.study.lastlayer.exception.BadRequestException;
 
 public enum MemberRole {
-	USER, CLUBMANAGER, ADMIN;
+	USER, CLUBMANAGER, ADMIN, SUSPENDED;
 
 	@JsonCreator // JSON의 문자열 데이터를 이 메서드로 보냅니다.
 	public static MemberRole fromString(String roleName) {

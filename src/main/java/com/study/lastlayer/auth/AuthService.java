@@ -81,7 +81,7 @@ public class AuthService {
 
 		jakarta.servlet.http.Cookie refreshTokenCookie = new jakarta.servlet.http.Cookie("refreshToken", refreshToken);
 		refreshTokenCookie.setHttpOnly(true);
-		refreshTokenCookie.setPath("/");
+		refreshTokenCookie.setPath("/api/lastlayer/auth"); // server.servlet.context-path에서 설정한 것은 무시
 		refreshTokenCookie.setMaxAge(60 * 60 * 24); // 24시간
 		refreshTokenCookie.setAttribute("SameSite", "Lax"); // Lax : 외부 사이트에서 링크 클릭 (GET) 허용. 예) 이메일로 "비밀번호 변경" 링크
 		response.addCookie(refreshTokenCookie);
@@ -100,18 +100,16 @@ public class AuthService {
 
 		AuthUser savedAuthUser = authUserRepository.save(authUser);
 
-		// 3. Member 저장 (프로필 및 신체 정보)
-		// daily_calories 계산 로직 (예시: 기초대사량 기반 간단한 공식)
-		int calculatedCalories = calculateDailyCalories(request);
 
 		Member member = Member.builder().authUser(savedAuthUser) // @MapsId에 의해 ID 공유
 				.name(request.name()).phone(request.phone()).gender(request.gender())
 				.birthday(LocalDate.parse(request.birthday())).height(request.height()).weight(request.weight())
 				.target_date(request.target_date()).goal(request.goal()).goal_weight(request.goal_weight())
 				.allergies(request.allergies()).special_notes(request.special_notes())
-				.daily_calories(calculatedCalories) // 자동 계산된 값 주입
+
 				.notificationCount(0).point(0L).build();
 
+		member.updateDailyCalories();
 		memberRepository.save(member);
 
 		// 4. 가입 후 즉시 로그인을 위해 DTO 반환
@@ -120,43 +118,43 @@ public class AuthService {
 	}
 
 	// Mifflin-St Jeor 공식	
-	private int calculateDailyCalories(SignupRequest req) {
-		// Step 1: 나이 계산 (만 나이 기준)
-		LocalDate birthDate = LocalDate.parse(req.birthday());
-		LocalDate today = LocalDate.now();
-
-		// Step 1: 만 나이 계산
-		int age = today.getYear() - birthDate.getYear();
-		if (birthDate.plusYears(age).isAfter(today)) {
-			age--; // 올해 생일이 아직 안 지났으면 1살 차감
-		}
-
-		// Step 2: 기초대사량 (BMR) 계산
-		double bmr;
-		if ("M".equalsIgnoreCase(req.gender())) {
-			// (남) (10 * W) + (6.25 * H) - (5 * A) + 5
-			bmr = (10 * req.weight()) + (6.25 * req.height()) - (5 * age) + 5;
-		} else {
-			// (여) (10 * W) + (6.25 * H) - (5 * A) - 161
-			bmr = (10 * req.weight()) + (6.25 * req.height()) - (5 * age) - 161;
-		}
-
-		// Step 3: 유지 칼로리 (TDEE) - 활동량 '보통' 기준 (1.55)
-		double tdee = bmr * 1.55;
-
-		// Step 4 & 5: 하루 필요 감량분 계산
-		// (현재체중 - 목표체중) * 7700 / 목표기간
-		double totalWeightToLose = req.weight() - req.goal_weight();
-		double dailyDeficit = (totalWeightToLose * 7700) / req.target_date();
-
-		// Step 6: 최종 섭취량 (TDEE - 하루 필요 감량분)
-		int dailyCalories = (int) Math.round(tdee - dailyDeficit);
-
-		// [안전 장치] 생존을 위한 최소 칼로리 제한 (기초대사량 이하로 먹으면 위험)
-		int minimumSafetyCalories = (int) Math.round(bmr);
-
-		return Math.max(dailyCalories, minimumSafetyCalories);
-	}
+//	private int calculateDailyCalories(SignupRequest req) {
+//		// Step 1: 나이 계산 (만 나이 기준)
+//		LocalDate birthDate = LocalDate.parse(req.birthday());
+//		LocalDate today = LocalDate.now();
+//
+//		// Step 1: 만 나이 계산
+//		int age = today.getYear() - birthDate.getYear();
+//		if (birthDate.plusYears(age).isAfter(today)) {
+//			age--; // 올해 생일이 아직 안 지났으면 1살 차감
+//		}
+//
+//		// Step 2: 기초대사량 (BMR) 계산
+//		double bmr;
+//		if ("M".equalsIgnoreCase(req.gender())) {
+//			// (남) (10 * W) + (6.25 * H) - (5 * A) + 5
+//			bmr = (10 * req.weight()) + (6.25 * req.height()) - (5 * age) + 5;
+//		} else {
+//			// (여) (10 * W) + (6.25 * H) - (5 * A) - 161
+//			bmr = (10 * req.weight()) + (6.25 * req.height()) - (5 * age) - 161;
+//		}
+//
+//		// Step 3: 유지 칼로리 (TDEE) - 활동량 '보통' 기준 (1.55)
+//		double tdee = bmr * 1.55;
+//
+//		// Step 4 & 5: 하루 필요 감량분 계산
+//		// (현재체중 - 목표체중) * 7700 / 목표기간
+//		double totalWeightToLose = req.weight() - req.goal_weight();
+//		double dailyDeficit = (totalWeightToLose * 7700) / req.target_date();
+//
+//		// Step 6: 최종 섭취량 (TDEE - 하루 필요 감량분)
+//		int dailyCalories = (int) Math.round(tdee - dailyDeficit);
+//
+//		// [안전 장치] 생존을 위한 최소 칼로리 제한 (기초대사량 이하로 먹으면 위험)
+//		int minimumSafetyCalories = (int) Math.round(bmr);
+//
+//		return Math.max(dailyCalories, minimumSafetyCalories);
+//	}
 
 	public boolean checkExistence(String email) {
 
