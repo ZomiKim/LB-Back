@@ -1,6 +1,8 @@
 package com.study.lastlayer.club;
 
 
+import java.time.LocalDateTime;
+
 import com.study.lastlayer.file.File;
 import com.study.lastlayer.member.Member;
 
@@ -37,5 +39,15 @@ public class Club {
     
 
     @Column
-    private String keywords; 
+    private String keywords;
+    
+    @Column(nullable = false)
+	private LocalDateTime createdAt; 
+    
+    @PrePersist
+	public void onCreated() {
+		this.createdAt = LocalDateTime.now();
+	}
+    
+    
 }
