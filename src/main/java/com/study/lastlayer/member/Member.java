@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Comment;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.study.lastlayer.authuser.AuthUser;
 import com.study.lastlayer.file.File;
 
@@ -37,6 +38,7 @@ public class Member {
 	@Id
 	private Long member_id;
 
+	@JsonIgnore
 	@OneToOne
 	@MapsId // Member.member_id를 AuthUser.id와 매핑 (공유 PK 방식)
 	@JoinColumn(name = "member_id")
@@ -85,6 +87,7 @@ public class Member {
 	// @OneToOne이 맞지만 그렇게 되면 file_id를 중복 해서 사용할 수 없기 떄문에 테스트 할 때 불편 함.
 	@ManyToOne
 	@JoinColumn(name = "file_id", nullable = true, unique = false, foreignKey = @ForeignKey(name = "fk_member__file_id"))
+	@JsonIgnore
 	private File profileImage;
 
 	//////////// 

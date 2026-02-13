@@ -11,6 +11,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.study.lastlayer.exception.BadRequestException;
@@ -50,46 +51,63 @@ public class FileUploadService {
 		return filename.substring(lastDotIndex);
 	}
 
-	// ret : new filename list
-	public List<File> fileCreate(FileUploadDto dto, int thumbX, int thumbY) throws IOException {
-
-		List<MultipartFile> files = dto.getFiles();
-
-		if (files == null || files.isEmpty())
-			throw new BadRequestException(String.format("key files가 존재하지 않거나 비어있습니다."));
-
-		log.info("----fileCreate() files.size() : " + files.size());
-
-		List<com.study.lastlayer.file.File> lst = new ArrayList<>();
-
-		for (MultipartFile file : files) {
-			if (file != null && !file.isEmpty()) {
-				String originalFilename = file.getOriginalFilename();
-				String ext = getFileExtension(originalFilename);
-
-				// originalFilename를 뒤에 붙이면 파일시스템에 따른 엔코딩 문제가 생길 수 있어서 ext만 붙인다.
-				String newName = UUID.randomUUID() + ext;
-				log.info("----fileUpload() getOriginalFilename() : " + originalFilename);
-				java.io.File folder = new java.io.File(fileDir);
-				if (!folder.exists())
-					folder.mkdirs(); // 하위 폴더 모두 생성
-
-				byte[] fileData = file.getBytes();
-
-				Files.write(Paths.get(fileDir + '/' + newName), fileData); // 원본 저장
-
-				if (isImage(originalFilename))
-					Thumbnails.of(new ByteArrayInputStream(fileData)).size(thumbX, thumbY).outputFormat("jpg")
-							.toFile(fileDir + "/t_" + newName + ".jpg"); // thumbnail 저장
-
-				File fileEntity = File.builder().filename(newName).org_filename(originalFilename).build();
-				File newFileEntity = fileRepo.save(fileEntity);
-
-				lst.add(newFileEntity);
-			}
-
+	/**
+	 * 단일 파일 생성 (핵심 로직 분리)
+	 */
+	public File fileCreateOne(MultipartFile file, int thumbX, int thumbY) throws IOException {
+		if (file == null || file.isEmpty()) {
+			return null;
 		}
 
+		String originalFilename = file.getOriginalFilename();
+		String ext = getFileExtension(originalFilename);
+
+		// 고유한 파일명 생성
+		String newName = UUID.randomUUID() + ext;
+		log.info("----fileCreateOne() getOriginalFilename() : " + originalFilename);
+
+		java.io.File folder = new java.io.File(fileDir);
+		if (!folder.exists()) {
+			folder.mkdirs();
+		}
+
+		// 원본 파일 저장
+		byte[] fileData = file.getBytes();
+		Files.write(Paths.get(fileDir, newName), fileData);
+
+		// 이미지인 경우 썸네일 생성
+		if (isImage(originalFilename)) {
+			Thumbnails.of(new ByteArrayInputStream(fileData))
+					.size(thumbX, thumbY)
+					.outputFormat("jpg")
+					.toFile(fileDir + "/t_" + newName + ".jpg"); // 썸네일 파일 저장
+		}
+
+		// DB 저장
+		File fileEntity = File.builder()
+				.filename(newName)
+				.org_filename(originalFilename)
+				.build();
+
+		return fileRepo.save(fileEntity);
+	}
+
+	/**
+	 * 다중 파일 생성 (fileCreateOne을 호출하도록 변경)
+	 */
+	public List<File> fileCreate(FileUploadDto dto, int thumbX, int thumbY) throws IOException {
+		List<File> lst = new ArrayList<>();
+		List<MultipartFile> files = dto.getFiles();
+
+		if (files != null) {
+			for (MultipartFile file : files) {
+				// 단일 파일 처리 메서드 호출
+				File savedFile = fileCreateOne(file, thumbX, thumbY);
+				if (savedFile != null) {
+					lst.add(savedFile);
+				}
+			}
+		}
 		return lst;
 	}
 
@@ -103,5 +121,23 @@ public class FileUploadService {
 		String name = fileName.toLowerCase();
 		return name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".png") || name.endsWith(".gif")
 				|| name.endsWith(".bmp") || name.endsWith(".webp");
+	}
+
+	@Transactional
+	public void deletePhysicalFile(String filename) {
+		try {
+			// Paths.get을 사용하여 OS 독립적으로 경로 생성
+			java.io.File file = Paths.get(fileDir, filename).toFile();
+			if (file.exists())
+				file.delete();
+
+			// 썸네일 파일명 생성 시에도 동일하게 적용
+			String thumbName = "t_" + filename + ".jpg";
+			java.io.File thumbFile = Paths.get(fileDir, thumbName).toFile();
+			if (thumbFile.exists())
+				thumbFile.delete();
+		} catch (Exception e) {
+			log.info("파일 삭제 실패: " + e.getMessage());
+		}
 	}
 }

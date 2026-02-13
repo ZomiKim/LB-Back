@@ -17,13 +17,27 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.study.lastlayer.auth.JwtAuthFilter;
+import com.study.lastlayer.auth.JwtUtil;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true) // 메서드 단위 보안 활성화
 public class SecurityConfig {
+	private final JwtUtil jwtUtil;
+
+	public SecurityConfig(JwtUtil jwtUtil) {
+		this.jwtUtil = jwtUtil;
+	}
+
+	// 1. 필터를 빈으로 등록 (싱글톤 보장)
 	@Bean
-	SecurityFilterChain filterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
+	JwtAuthFilter jwtAuthFilter() {
+		return new JwtAuthFilter(jwtUtil);
+	}
+
+	@Bean
+	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
 		http.csrf(config -> config.disable());
 		http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
@@ -35,7 +49,7 @@ public class SecurityConfig {
 
 		return http.authorizeHttpRequests(auth -> auth.anyRequest().permitAll()).formLogin(form -> form.disable())
 				.httpBasic(httpBasic -> httpBasic.disable())
-				.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+				.addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class)
 				.sessionManagement(
 						sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 서버가 세션을 관리하지 않겠다
 				.build();
