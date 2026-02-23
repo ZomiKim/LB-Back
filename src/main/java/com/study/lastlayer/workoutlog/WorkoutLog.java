@@ -1,4 +1,4 @@
-package com.study.lastlayer.exercise.woroutlog;
+package com.study.lastlayer.workoutlog;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
