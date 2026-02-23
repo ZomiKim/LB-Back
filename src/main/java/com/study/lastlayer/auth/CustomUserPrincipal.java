@@ -1,6 +1,5 @@
 package com.study.lastlayer.auth;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,7 +35,7 @@ public class CustomUserPrincipal implements UserDetails {
 		return email;
 	}
 
-	private List<MemberRole> roles = new ArrayList<>();
+	private List<MemberRole> roles;
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -45,25 +44,12 @@ public class CustomUserPrincipal implements UserDetails {
 				.map(role -> new SimpleGrantedAuthority("ROLE_" + role.name())).collect(Collectors.toList());
 
 		// 2. 만약 권한 리스트가 비어있다면 기본값 추가
-		if (authorities.isEmpty()) {
-			authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-		}
+//		if (authorities.isEmpty()) {
+//			authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+//		}
 
 		return authorities;
 	}
-	//	public Collection<? extends GrantedAuthority> getAuthorities() {
-	//		// 1. DB(member_roles)에서 가져온 권한들을 리스트로 만듭니다.
-	//		List<SimpleGrantedAuthority> authorities = this.roles.stream().map(SimpleGrantedAuthority::new)
-	//				.collect(Collectors.toList());
-	//
-	//		// 2. 만약 권한 리스트가 비어있다면(DB에 데이터가 없다면)
-	//		if (authorities.isEmpty()) {
-	//			// 기본값으로 ROLE_USER를 추가해서 반환합니다.
-	//			authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-	//		}
-	//
-	//		return authorities;
-	//	}
 
 	@Override
 	public String getPassword() {
