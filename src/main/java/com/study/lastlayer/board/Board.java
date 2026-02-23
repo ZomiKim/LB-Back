@@ -71,6 +71,9 @@ public class Board {
 	@Column(nullable = false)
 	private LocalDateTime updatedAt;
 	
+	@Column
+	    private LocalDateTime deletedAt;
+	
 	
 	@PrePersist
 	public void onCreated() {
@@ -83,5 +86,12 @@ public class Board {
 	    this.updatedAt = LocalDateTime.now();
 	}
 
+	 public void softDelete() {
+	        this.deletedAt = LocalDateTime.now();
+	    }
+
+	 public boolean isDeleted() {
+	        return this.deletedAt != null;
+	    }
 	
 }
