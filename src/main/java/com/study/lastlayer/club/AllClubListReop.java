@@ -73,8 +73,33 @@ public interface AllClubListReop extends JpaRepository<Club, Long>{
     List<Object[]> findByClubListOrderByBoardCountNative();
 
 
-	
-    }
+ // 회원 많은 순 클럽 리스트
+    @Query(
+        value = """
+            SELECT
+                c.id,
+                c.description,
+                c.keywords,
+                c.name,
+                f.id AS bgFileId,
+                f.filename,
+                c.manager_id AS managerId,
+                c.created_at AS createdAt,
+                COUNT(cm.id) AS memberCount
+            FROM club c
+            LEFT JOIN file f ON f.id = c.bg_file_id
+            LEFT JOIN club_member cm ON cm.club_id = c.id
+            GROUP BY c.id, c.description, c.keywords, c.name, f.id, f.filename, c.manager_id, c.created_at
+            ORDER BY COUNT(cm.id) DESC
+        """,
+        nativeQuery = true
+    )
+    List<Object[]> findClubsOrderByMemberCount();
 
+
+    
+    
+    
+}
 	
 

@@ -2,6 +2,7 @@ package com.study.lastlayer.club;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -22,9 +23,8 @@ public class ClubServce {
 	 }
 
 	 
-//	 네이티브 쿼리 때문에 길어요
-	
-
+//	 네이티브 쿼리 때문에 길어요 
+//	 게시글 많은 순
 	    public List<ClubDto> getAllClubListOrderByBoardCountNative() {
 	        List<Object[]> results = allClubListReop.findByClubListOrderByBoardCountNative();
 	        List<ClubDto> dtoList = new ArrayList<>();
@@ -47,6 +47,37 @@ public class ClubServce {
 	        return dtoList;
 	    }
 
+	    
+	    
+	 // 클럽별 회원 많은 순
+	    public List<ClubDto> getAllClubsByMemberCount() {
+	        List<Object[]> results = allClubListReop.findClubsOrderByMemberCount();
+	        List<ClubDto> dtoList = new ArrayList<>();
+
+	        for (Object[] row : results) {
+	            ClubDto dto = ClubDto.builder()
+	                    .id(((Number) row[0]).longValue())
+	                    .description((String) row[1])
+	                    .keywords((String) row[2])
+	                    .name((String) row[3])
+	                    .bgFileId(row[4] != null ? ((Number) row[4]).longValue() : null)
+	                    .filename((String) row[5])
+	                    .managerId(((Number) row[6]).longValue())
+	                    .createdAt(((java.sql.Timestamp) row[7]).toLocalDateTime())
+	                    .build();
+
+	            dtoList.add(dto);
+	        }
+
+	        return dtoList;
+	    }
+
+	  
+
+	    
+
+
+	 
 	 
 
 }

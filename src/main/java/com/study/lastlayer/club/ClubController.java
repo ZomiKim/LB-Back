@@ -39,6 +39,12 @@ public class ClubController {
 		 return clubServce.getAllClubListOrderByBoardCountNative();
 	 }
 	 
+	
+	// 회원 많은 순 클럽 리스트
+	 @GetMapping("/mostMember")
+	    public List<ClubDto> getClubListByMemberCount() {
+	        return clubServce.getAllClubsByMemberCount();
+	    }
 	 
 
 }
