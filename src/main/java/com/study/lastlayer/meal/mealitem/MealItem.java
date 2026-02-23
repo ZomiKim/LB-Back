@@ -42,6 +42,18 @@ public class MealItem {
 	@Column(nullable = false)
 	@Comment("섭취량 (g)")
 	private Integer amount;
+	
+	@Column(nullable = false)
+	@Comment("탄수화물 (kcal)")
+	private Integer carbohydrate;
+	
+	@Column(nullable = false)
+	@Comment("단백질 (kcal)")
+	private Integer protein;
+	
+	@Column(nullable = false)
+	@Comment("지방 (kcal)")
+	private Integer fat;
 
 	@Column(nullable = false)
 	@Comment("해당 음식의 칼로리 (kcal)")
@@ -63,10 +75,5 @@ public class MealItem {
 		this.updatedAt = LocalDateTime.now();
 	}
 
-	@ColumnDefault("0")
-	private Integer carbohydrate;
-	@ColumnDefault("0")
-	private Integer fat;
-	@ColumnDefault("0")
-	private Integer protein;
+	
 }
