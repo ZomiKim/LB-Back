@@ -81,7 +81,7 @@ public class AuthService {
 
 		jakarta.servlet.http.Cookie refreshTokenCookie = new jakarta.servlet.http.Cookie("refreshToken", refreshToken);
 		refreshTokenCookie.setHttpOnly(true);
-		refreshTokenCookie.setPath("/api/lastlayer/auth"); // server.servlet.context-path에서 설정한 것은 무시
+		refreshTokenCookie.setPath("/"); // server.servlet.context-path에서 설정한 것은 무시
 		refreshTokenCookie.setMaxAge(60 * 60 * 24); // 24시간
 		refreshTokenCookie.setAttribute("SameSite", "Lax"); // Lax : 외부 사이트에서 링크 클릭 (GET) 허용. 예) 이메일로 "비밀번호 변경" 링크
 		response.addCookie(refreshTokenCookie);

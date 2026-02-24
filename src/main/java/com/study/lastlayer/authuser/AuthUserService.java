@@ -3,15 +3,44 @@ package com.study.lastlayer.authuser;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.study.lastlayer.exception.BadRequestException;
 
+import jakarta.validation.constraints.NotBlank;
+
+record PasswordChangeRequest(
+		@NotBlank(message = "현재 비밀번호는 필수입니다.") String currentPassword,
+
+		@NotBlank(message = "새 비밀번호는 필수입니다.") String newPassword) {
+}
+
 @Service
 public class AuthUserService {
 	@Autowired
 	private AuthUserRepository authUserRepository;
+
+	@Autowired
+	private PasswordEncoder passwordEncoder; // Security Config에 빈 등록 필요
+
+	@Transactional
+	public void changePassword(Long memberId, PasswordChangeRequest request) {
+		AuthUser user = authUserRepository.findById(memberId)
+				.orElseThrow(() -> new BadRequestException(String.format("memberId[%d] 없음", memberId)));
+
+		// 1. 현재 비밀번호 일치 확인
+		if (!passwordEncoder.matches(request.currentPassword(), user.getPassword())) {
+			throw new BadRequestException("현재 비밀번호가 일치하지 않습니다.");
+		}
+
+		// 2. 새 비밀번호 암호화 및 저장
+		// AuthUser.java에 이미 public void setPassword(String password)가 선언되어 있음
+		user.setPassword(passwordEncoder.encode(request.newPassword()));
+
+		// @Transactional에 의해 메서드 종료 시 변경 감지(Dirty Checking)로 DB에 반영됨
+	}
 
 	@Transactional
 	public List<MemberRole> addRole(Long memberId, MemberRole newRole) {

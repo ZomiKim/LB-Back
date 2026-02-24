@@ -41,6 +41,7 @@ public class AuthController {
 				.path("/")
 				.httpOnly(true)
 				.secure(true)
+				.sameSite("Lax")
 				.maxAge(0) // 유효기간을 0으로 설정하여 삭제 유도
 				.build();
 
