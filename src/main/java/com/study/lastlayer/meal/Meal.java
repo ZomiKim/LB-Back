@@ -58,14 +58,16 @@ public class Meal {
 
 	@PrePersist
 	public void onCreated() {
-		this.createdAt = LocalDateTime.now();
+		LocalDateTime now = LocalDateTime.now();
+		this.createdAt = now;
+		this.updatedAt = now;
 	}
 
 	@Column(nullable = false)
 	private LocalDateTime updatedAt;
 
 	@PreUpdate
-	public void onUpdatedd() {
+	public void onUpdated() {
 		this.updatedAt = LocalDateTime.now();
 	}
 

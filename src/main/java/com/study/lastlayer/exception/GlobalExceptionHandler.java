@@ -28,7 +28,10 @@ public class GlobalExceptionHandler {
 		return new ResponseEntity<>(errorResponse, status);
 	}
 
-	// 이외의 다른 일반적인 500 에러를 400으로 처리하고 싶다면,
-	// @ExceptionHandler(IllegalArgumentException.class) 등을 추가할 수 있습니다.
-
+	@ExceptionHandler(IllegalArgumentException.class)
+	public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
+		HttpStatus status = HttpStatus.BAD_REQUEST;
+		ErrorResponse errorResponse = new ErrorResponse(status.value(), ex.getMessage());
+		return new ResponseEntity<>(errorResponse, status);
+	}
 }
