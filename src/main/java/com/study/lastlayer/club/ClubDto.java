@@ -20,5 +20,6 @@ public class ClubDto {
 	private String filename;
 	private Long managerId;
 	private LocalDateTime createdAt;
+	
 
 }
