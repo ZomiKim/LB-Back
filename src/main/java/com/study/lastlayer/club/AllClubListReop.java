@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 
 @Repository
@@ -95,6 +96,25 @@ public interface AllClubListReop extends JpaRepository<Club, Long>{
         nativeQuery = true
     )
     List<Object[]> findClubsOrderByMemberCount();
+
+//검색
+    @Query("""
+    	    select new com.study.lastlayer.club.ClubDto(
+    	        c.id,
+    	        c.description,
+    	        c.keywords,
+    	        c.name,
+    	        f.id,
+    	        f.filename,
+    	        c.member.id,
+    	        c.createdAt
+    	    )
+    	    from Club c
+    	    left join c.file f
+    	    where c.name like concat('%', :keyword, '%')
+    	       or c.keywords like concat('%', :keyword, '%')
+    	""")
+    	List<ClubDto> searchClubsByKeyword(@Param("keyword") String keyword);
 
 
     

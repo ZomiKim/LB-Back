@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
@@ -45,6 +46,11 @@ public class ClubController {
 	    public List<ClubDto> getClubListByMemberCount() {
 	        return clubServce.getAllClubsByMemberCount();
 	    }
+	 
+	 @GetMapping("/search")
+	 public List<ClubDto> searchClubs(@RequestParam("keyword") String keyword) {
+	     return clubServce.searchClubs(keyword);
+	 }
 	 
 
 }

@@ -72,6 +72,11 @@ public class ClubServce {
 	        return dtoList;
 	    }
 
+	    
+	    
+	    public List<ClubDto> searchClubs(String keyword) {
+	        return allClubListReop.searchClubsByKeyword(keyword);
+	    }
 	  
 
 	    
