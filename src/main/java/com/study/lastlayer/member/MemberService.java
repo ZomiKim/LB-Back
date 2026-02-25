@@ -73,7 +73,7 @@ public class MemberService {
 		Member member = getMember(memberId);
 
 		// 단일 파일 업로드 메서드 호출 가능
-		File savedFile = fileUploadService.fileCreateOne(file, 32, 32);
+		File savedFile = fileUploadService.fileCreateOne(file, 64, 64);
 
 		if (savedFile != null) {
 			member.setProfileImage(savedFile);
