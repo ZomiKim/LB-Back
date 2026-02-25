@@ -1,0 +1,75 @@
+package com.study.lastlayer.meal.dietlog;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.study.lastlayer.exception.BadRequestException;
+import com.study.lastlayer.meal.Meal;
+import com.study.lastlayer.meal.MealRepository;
+import com.study.lastlayer.member.Member;
+import com.study.lastlayer.member.MemberRepository;
+
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+@Transactional
+public class DietLogService {
+
+	private final DietLogRepository dietLogRepository;
+	private final MealRepository mealRepository;
+	private final MemberRepository memberRepository;
+
+	/** 회원별 식단 기록 목록 조회 (diet_log를 통한 조회, 기간 선택 가능) */
+	@Transactional(readOnly = true)
+	public List<DietLogResponseDto> getByMember(Long memberId, LocalDate fromDate, LocalDate toDate) {
+		validateMemberExists(memberId);
+		List<DietLog> list;
+		if (fromDate != null && toDate != null) {
+			LocalDateTime from = fromDate.atStartOfDay();
+			LocalDateTime to = toDate.atTime(LocalTime.MAX);
+			list = dietLogRepository.findByMemberIdAndDateAtBetween(memberId, from, to);
+		} else {
+			list = dietLogRepository.findByMemberIdOrderByDateAtDesc(memberId);
+		}
+		return list.stream()
+				.map(DietLogResponseDto::fromEntity)
+				.toList();
+	}
+
+	/** 식단 기록 단건 조회 */
+	@Transactional(readOnly = true)
+	public DietLogResponseDto getById(Long id) {
+		DietLog log = dietLogRepository.findById(id)
+				.orElseThrow(() -> new BadRequestException("식단 기록이 존재하지 않습니다. id=" + id));
+		return DietLogResponseDto.fromEntity(log);
+	}
+
+	/** 식단 기록 추가 */
+	public DietLogResponseDto create(Long memberId, DietLogRequestDto dto) {
+		if (dto.getMealId() == null) {
+			throw new IllegalArgumentException("mealId는 필수입니다.");
+		}
+		Member member = memberRepository.findById(memberId)
+				.orElseThrow(() -> new BadRequestException("회원이 존재하지 않습니다. id=" + memberId));
+		Meal meal = mealRepository.findById(dto.getMealId())
+				.orElseThrow(() -> new BadRequestException("식단이 존재하지 않습니다. id=" + dto.getMealId()));
+		DietLog log = new DietLog();
+		log.setMember(member);
+		log.setMeal(meal);
+		log.setDateAt(dto.getDateAt() != null ? dto.getDateAt() : LocalDateTime.now());
+		DietLog saved = dietLogRepository.save(log);
+		return DietLogResponseDto.fromEntity(saved);
+	}
+
+	private void validateMemberExists(Long memberId) {
+		if (!memberRepository.existsById(memberId)) {
+			throw new BadRequestException("회원이 존재하지 않습니다. id=" + memberId);
+		}
+	}
+}

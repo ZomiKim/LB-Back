@@ -6,7 +6,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.study.lastlayer.exception.NotFoundException;
+import com.study.lastlayer.exception.BadRequestException;
 import com.study.lastlayer.meal.Meal;
 import com.study.lastlayer.meal.MealRecommendItemDto;
 import com.study.lastlayer.meal.MealRecommendRequestDto;
@@ -47,7 +47,7 @@ public class MealPlanService {
 		}
 
 		Member member = memberRepository.findById(dto.getMemberId())
-				.orElseThrow(() -> new NotFoundException("회원이 존재하지 않습니다. id=" + dto.getMemberId()));
+				.orElseThrow(() -> new BadRequestException("회원이 존재하지 않습니다. id=" + dto.getMemberId()));
 
 		// 1) Meal 생성
 		Meal meal = mealService.createMealFromRecommend(dto);
