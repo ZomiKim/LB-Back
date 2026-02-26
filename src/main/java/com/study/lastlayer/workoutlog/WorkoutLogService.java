@@ -1,7 +1,12 @@
 package com.study.lastlayer.workoutlog;
 
+import java.time.LocalDate;
+import java.util.List;
+
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,11 +32,8 @@ public class WorkoutLogService {
             WorkoutCreateRequestDto dto
     ) {
 
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
-
-        Exercise exercise = exerciseRepository.findById(dto.getExerciseId())
-                .orElseThrow(() -> new IllegalArgumentException("운동이 존재하지 않습니다."));
+        Member member = getMember(memberId);
+        Exercise exercise = getExercise(dto.getExerciseId());
 
         int calories = calculateCalories(
                 exercise.getMet(),
@@ -49,27 +51,121 @@ public class WorkoutLogService {
         workoutLogRepository.save(log);
 
         return WorkoutResponseDto.fromEntity(log);
-    } 
+    }
 
     // 운동 기록 조회 (페이징)
     @Transactional(readOnly = true)
     public Page<WorkoutResponseDto> getWorkouts(
             Long memberId,
+            String sort,
             Pageable pageable
     ) {
 
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
+        Member member = getMember(memberId);
+
+        Sort sorting = sort.equalsIgnoreCase("oldest")
+                ? Sort.by("dateAt").ascending()
+                : Sort.by("dateAt").descending();
+
+        Pageable sortedPageable = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                sorting
+        );
 
         return workoutLogRepository
-                .findByMemberOrderByDateAtDesc(member, pageable)
+                .findByMember(member, sortedPageable)
                 .map(WorkoutResponseDto::fromEntity);
     }
 
+    // 수정
+    public WorkoutResponseDto updateWorkout(
+            Long memberId,
+            Long workoutId,
+            WorkoutCreateRequestDto dto
+    ) {
+
+        WorkoutLog log = workoutLogRepository.findById(workoutId)
+                .orElseThrow(() -> new IllegalArgumentException("운동 기록이 존재하지 않습니다."));
+
+        // 로그인 사용자 검증
+        if (!log.getMember().getMember_id().equals(memberId)) {
+            throw new IllegalArgumentException("해당 회원의 기록이 아닙니다.");
+        }
+
+        Exercise exercise = getExercise(dto.getExerciseId());
+
+        int calories = calculateCalories(
+                exercise.getMet(),
+                log.getMember().getWeight(),
+                dto.getDurationMin()
+        );
+
+        log.setExercise(exercise);
+        log.setDurationMin(dto.getDurationMin());
+        log.setBurntCalories(calories);
+        log.setDateAt(dto.getDateAt());
+
+        return WorkoutResponseDto.fromEntity(log);
+    }
+
+    // 삭제
+    public void deleteWorkout(Long memberId, Long workoutId) {
+
+        WorkoutLog log = workoutLogRepository.findById(workoutId)
+                .orElseThrow(() -> new IllegalArgumentException("운동 기록이 존재하지 않습니다."));
+
+        //  로그인 사용자 검증 
+        if (!log.getMember().getMember_id().equals(memberId)) {
+            throw new IllegalArgumentException("해당 회원의 기록이 아닙니다.");
+        }
+
+        workoutLogRepository.delete(log);
+    }
+
+    // 날짜별 칼로리 합계
+    @Transactional(readOnly = true)
+    public List<WorkoutCaloriesResponseDto> getCaloriesByDate(
+            Long memberId,
+            LocalDate startDate,
+            LocalDate endDate
+    ) {
+
+        Member member = getMember(memberId);
+
+        if (startDate == null) {
+            startDate = LocalDate.of(2000, 1, 1);
+        }
+
+        if (endDate == null) {
+            endDate = LocalDate.now();
+        }
+
+        return workoutLogRepository
+                .sumCaloriesByDate(member, startDate, endDate)
+                .stream()
+                .map(obj -> new WorkoutCaloriesResponseDto(
+                        (LocalDate) obj[0],
+                        ((Number) obj[1]).intValue()
+                ))
+                .toList();
+    }
+
     // 칼로리 계산 공식
-    private int calculateCalories(Float met, Float weight, int durationMin) {
+    public int calculateCalories(Float met, Float weight, int durationMin) {
         double hours = durationMin / 60.0;
         return (int) (met * weight * hours);
     }
 
+    // 회원 조회
+    public Member getMember(Long memberId) {
+        return memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
+    }
+
+    // 운동 조회
+    public Exercise getExercise(Long exerciseId) {
+        return exerciseRepository.findById(exerciseId)
+                .orElseThrow(() -> new IllegalArgumentException("운동이 존재하지 않습니다."));
+    }
 }
