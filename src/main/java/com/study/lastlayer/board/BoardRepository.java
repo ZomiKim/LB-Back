@@ -1,6 +1,7 @@
 package com.study.lastlayer.board;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -127,5 +128,34 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
         ORDER BY b.createdAt DESC
     """)
     List<BoardDto> findNormalBoardsByClubId(@Param("clubId") Long clubId);
+
+
+ // 게시글 단일 조회
+    @Query("""
+        SELECT new com.study.lastlayer.board.BoardDto(
+            b.id,
+            b.board_type,
+            b.contents,
+            b.createdAt,
+            b.deletedAt,
+            b.like_count,
+            b.title,
+            b.updatedAt,
+            b.view_count,
+            b.club.id,
+            bf.id,
+            bf.filename,
+            m.id,
+            m.name,
+            pf.filename
+        )
+        FROM Board b
+        JOIN b.member m
+        LEFT JOIN b.file bf
+        LEFT JOIN m.profileImage pf
+        WHERE b.deletedAt IS NULL
+          AND b.id = :boardId
+    """)
+    Optional<BoardDto> findBoardDetailById(@Param("boardId") Long boardId);
 
 }
