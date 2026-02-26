@@ -20,6 +20,7 @@ public class BoardDto {
     private Integer view_count;
     private Long club_id;
     private Long file_id;
+    private String filename;
     private Long member_id;
 
     // 조인조건
