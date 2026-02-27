@@ -122,6 +122,92 @@ public class BoardService {
         );
     }
 
+
+	
+//수정
+    @Transactional
+    public BoardDto updateBoard(Long boardId, BoardUpdateDto dto, Member member) throws Exception {
+
+        // 게시글 조회
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new RuntimeException("게시글이 존재하지 않습니다."));
+
+        // 삭제 여부 확인
+        if (board.getDeletedAt() != null) {
+            throw new RuntimeException("삭제된 게시글입니다.");
+        }
+
+        // 작성자 검증
+        if (!board.getMember().getMember_id().equals(member.getMember_id())) {
+            throw new RuntimeException("수정 권한이 없습니다.");
+        }
+
+        // ===== 기본 필드 수정 =====
+        board.setTitle(dto.getTitle());
+        board.setContents(dto.getContents());
+        board.setBoard_type(dto.getBoardType());
+
+        // ===== 파일 처리 (새 파일이 들어온 경우 교체) =====
+        if (dto.getFile() != null && !dto.getFile().isEmpty()) {
+
+            MultipartFile uploadedFile = dto.getFile();
+            String storedFilename = UUID.randomUUID() + "_" + uploadedFile.getOriginalFilename();
+
+            String uploadDir = "C:/lastlayer/upload/";
+            Path savePath = Paths.get(uploadDir + storedFilename);
+            Files.createDirectories(savePath.getParent());
+            uploadedFile.transferTo(savePath.toFile());
+
+            File fileEntity = File.builder()
+                    .filename(storedFilename)
+                    .org_filename(uploadedFile.getOriginalFilename())
+                    .build();
+
+            fileRepository.save(fileEntity);
+
+            board.setFile(fileEntity);
+        }
+
+        // save는 @Transactional + Dirty Checking으로 자동 반영되지만
+        // 명확히 해주고 싶으면 아래 줄 유지해도 됨
+        boardRepository.save(board);
+
+        // ===== DTO 반환 (createBoard와 동일한 구조) =====
+        return new BoardDto(
+                board.getId(),
+                board.getBoard_type(),
+                board.getContents(),
+                board.getCreatedAt(),
+                board.getDeletedAt(),
+                board.getLike_count(),
+                board.getTitle(),
+                board.getUpdatedAt(),
+                board.getView_count(),
+                board.getClub().getId(),
+                board.getFile() != null ? board.getFile().getId() : null,
+                board.getFile() != null ? board.getFile().getFilename() : null,
+                board.getMember().getMember_id(),
+                board.getMember().getName(),
+                board.getMember().getProfileImage() != null
+                        ? board.getMember().getProfileImage().getFilename()
+                        : null
+        );
+    }
+
+
+	//삭제
+    @Transactional
+    public void deleteBoard(Long boardId) {
+
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new RuntimeException("게시글이 존재하지 않습니다."));
+
+        if (board.getDeletedAt() != null) {
+            throw new RuntimeException("이미 삭제된 게시글입니다.");
+        }
+
+        board.softDelete(); // deletedAt = now()
+    }
     
   
  

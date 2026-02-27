@@ -7,10 +7,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -75,6 +77,33 @@ public class BoardController {
         Member member = memberService.getMember(principal.getMemberId());
         BoardDto created = boardService.createBoard(dto, member);
         return ResponseEntity.ok(created);
+    }
+    
+    
+    //수정
+    @PutMapping("/{boardId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<BoardDto> updateBoard(
+            @PathVariable("boardId") Long boardId,
+            @AuthenticationPrincipal CustomUserPrincipal principal,
+            @ModelAttribute BoardUpdateDto dto
+    ) throws Exception {
+
+        Member member = memberService.getMember(principal.getMemberId());
+        BoardDto updated = boardService.updateBoard(boardId, dto, member);
+
+        return ResponseEntity.ok(updated);
+    }
+    
+    //삭제 (가짜 삭제)
+    @DeleteMapping("/{boardId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> deleteBoard(
+            @PathVariable("boardId") Long boardId
+    ) {
+
+        boardService.deleteBoard(boardId);
+        return ResponseEntity.ok().build();
     }
    
     
