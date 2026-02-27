@@ -64,8 +64,14 @@ public class WorkoutLogService {
         Member member = getMember(memberId);
 
         Sort sorting = sort.equalsIgnoreCase("oldest")
-                ? Sort.by("dateAt").ascending()
-                : Sort.by("dateAt").descending();
+                ? Sort.by(
+                    Sort.Order.asc("dateAt"),
+                    Sort.Order.asc("id")
+                  )
+                : Sort.by(
+                    Sort.Order.desc("dateAt"),
+                    Sort.Order.desc("id")
+                  );
 
         Pageable sortedPageable = PageRequest.of(
                 pageable.getPageNumber(),
@@ -159,6 +165,10 @@ public class WorkoutLogService {
 
     // 회원 조회
     public Member getMember(Long memberId) {
+        if (memberId == null) {
+            throw new IllegalArgumentException("회원 ID가 전달되지 않았습니다.");
+        }
+
         return memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
     }

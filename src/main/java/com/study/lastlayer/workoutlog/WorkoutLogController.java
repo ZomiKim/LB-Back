@@ -14,6 +14,7 @@ import com.study.lastlayer.auth.CustomUserPrincipal;
 import com.study.lastlayer.exercise.Exercise;
 import com.study.lastlayer.member.Member;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -28,9 +29,15 @@ public class WorkoutLogController {
     @PostMapping
     public WorkoutResponseDto createWorkout(
             @AuthenticationPrincipal CustomUserPrincipal principal,
-            @RequestBody WorkoutCreateRequestDto dto
+            @Valid @RequestBody WorkoutCreateRequestDto dto
     ) {
-        return workoutLogService.createWorkout(principal.getMemberId(), dto);
+
+        Long memberId = principal.getMemberId();
+        if (memberId == null) {
+            throw new IllegalArgumentException("로그인된 회원 ID가 없습니다.");
+        }
+
+        return workoutLogService.createWorkout(memberId, dto);
     }
 
     // 운동 기록 조회
@@ -106,4 +113,6 @@ public class WorkoutLogController {
 
         return new WorkoutCalcResponseDto(results, totalCalories);
     }
+    
+    
 }
