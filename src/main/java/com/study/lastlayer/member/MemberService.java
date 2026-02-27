@@ -94,10 +94,6 @@ public class MemberService {
         return member.getProfileImage();
     }
 
-
-		// 단일 파일 업로드 메서드 호출 가능
-		File savedFile = fileUploadService.fileCreateOne(file, 64, 64);
-
     // =========================
     // 프로필 이미지 업데이트
     // =========================
