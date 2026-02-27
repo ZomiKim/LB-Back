@@ -13,88 +13,143 @@ import com.study.lastlayer.file.File;
 import com.study.lastlayer.file.FileRepository;
 import com.study.lastlayer.fileupload.FileUploadService;
 
-record MemberUpdateDto(
-		// Member 정보
-		String name, String phone, String gender, String birthday, // "yyyy-MM-dd"
-		Float height, Float weight, Integer target_date, String goal, Float goal_weight, String allergies,
-		String special_notes) {
-}
+import java.util.Optional;
 
+// =========================
+// DTO: 회원 정보 업데이트용
+// =========================
+record MemberUpdateDto(
+        String name,
+        String phone,
+        String gender,
+        String birthday, // "yyyy-MM-dd"
+        Float height,
+        Float weight,
+        Integer target_date,
+        String goal,
+        Float goal_weight,
+        String allergies,
+        String special_notes
+) {}
+
+// =========================
+// Service
+// =========================
 @Service
 @Transactional
 public class MemberService {
-	@Autowired
-	private MemberRepository memberRepository;
 
-	@Autowired
-	private FileUploadService fileUploadService; // 기존 서비스 주입
+    @Autowired
+    private MemberRepository memberRepository;
 
-	@Autowired
-	private FileRepository fileRepository;
+    @Autowired
+    private FileUploadService fileUploadService;
 
-	public Member updateMember(Long id, MemberUpdateDto dto) {
-		// 1. 회원 조회
-		Member member = memberRepository.findById(id)
-				.orElseThrow(() -> new IllegalArgumentException("해당 회원이 존재하지 않습니다. id=" + id));
+    @Autowired
+    private FileRepository fileRepository;
 
-		// 2. 데이터 업데이트
-		member.setName(dto.name());
-		member.setPhone(dto.phone());
-		member.setGender(dto.gender());
-		member.setBirthday(LocalDate.parse(dto.birthday()));
-		member.setHeight(dto.height());
-		member.setWeight(dto.weight());
-		member.setTarget_date(dto.target_date());
-		member.setGoal(dto.goal());
-		member.setGoal_weight(dto.goal_weight());
-		member.setAllergies(dto.allergies());
-		member.setSpecial_notes(dto.special_notes());
+    // =========================
+    // 회원 정보 업데이트
+    // =========================
+    public Member updateMember(Long id, MemberUpdateDto dto) {
+        // 1. 회원 조회
+        Member member = memberRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("해당 회원이 존재하지 않습니다. id=" + id));
 
-		// 3. 변경된 신체 정보를 바탕으로 하루 권장 칼로리 재계산 (엔티티 내 메서드 활용)
-		member.updateDailyCalories();
+        // 2. 데이터 업데이트
+        member.setName(dto.name());
+        member.setPhone(dto.phone());
+        member.setGender(dto.gender());
+        member.setBirthday(LocalDate.parse(dto.birthday()));
+        member.setHeight(dto.height());
+        member.setWeight(dto.weight());
+        member.setTarget_date(dto.target_date());
+        member.setGoal(dto.goal());
+        member.setGoal_weight(dto.goal_weight());
+        member.setAllergies(dto.allergies());
+        member.setSpecial_notes(dto.special_notes());
 
-		// Dirty Checking(변경 감지)에 의해 별도의 save 없이도 업데이트되지만 명시적으로 리턴 가능
-		return member;
-	}
+        // 3. 변경된 신체 정보를 바탕으로 하루 권장 칼로리 재계산
+        member.updateDailyCalories();
 
-	@Transactional(readOnly = true) // 읽기 전용이어도 트랜잭션 내에서 처리하는 것이 권장됩니다.
-	public Member getMember(Long memberId) {
-		return memberRepository.findById(memberId)
-				.orElseThrow(() -> new BadRequestException("해당 회원이 존재하지 않습니다. id=" + memberId));
-	}
+        // Dirty Checking으로 자동 반영
+        return member;
+    }
 
-	@Transactional(readOnly = true)
-	public File getProfileImage(Long memberId) {
-		Member member = getMember(memberId);
-		return member.getProfileImage();
-	}
+    // =========================
+    // 회원 조회
+    // =========================
+    @Transactional(readOnly = true)
+    public Member getMember(Long memberId) {
+        return memberRepository.findById(memberId)
+                .orElseThrow(() -> new BadRequestException("해당 회원이 존재하지 않습니다. id=" + memberId));
+    }
 
-	public File updateProfileImage(Long memberId, MultipartFile file) throws IOException {
-		Member member = getMember(memberId);
+    // =========================
+    // 프로필 이미지 조회
+    // =========================
+    @Transactional(readOnly = true)
+    public File getProfileImage(Long memberId) {
+        Member member = getMember(memberId);
+        return member.getProfileImage();
+    }
 
-		// 단일 파일 업로드 메서드 호출 가능
-		File savedFile = fileUploadService.fileCreateOne(file, 32, 32);
+    // =========================
+    // 프로필 이미지 업데이트
+    // =========================
+    public File updateProfileImage(Long memberId, MultipartFile file) throws IOException {
+        Member member = getMember(memberId);
 
-		if (savedFile != null) {
-			member.setProfileImage(savedFile);
-		}
-		return savedFile;
-	}
+        // 단일 파일 업로드
+        File savedFile = fileUploadService.fileCreateOne(file, 32, 32);
+        if (savedFile != null) {
+            member.setProfileImage(savedFile);
+        }
+        return savedFile;
+    }
 
-	public void deleteProfileImage(Long memberId) {
-		Member member = getMember(memberId);
+    // =========================
+    // 프로필 이미지 삭제
+    // =========================
+    public void deleteProfileImage(Long memberId) {
+        Member member = getMember(memberId);
+        File profileImage = member.getProfileImage();
+        if (profileImage != null) {
+            // 1. DB에서 사용자와 파일의 연관 관계 끊기
+            member.setProfileImage(null);
 
-		File profileImage = member.getProfileImage();
+            // 2. 물리적 파일 삭제
+            fileUploadService.deletePhysicalFile(profileImage.getFilename());
 
-		if (profileImage != null) {
-			// 1. DB에서 사용자와 파일의 연관 관계 끊기
-			member.setProfileImage(null);
+            // 3. DB에서 File 레코드 삭제
+            fileRepository.delete(profileImage);
+        }
+    }
 
-			// 2. 물리적 파일 삭제 로직 (선택 사항이나 권장)
-			fileUploadService.deletePhysicalFile(profileImage.getFilename());
+    // =========================
+    // 회원 포인트 조회
+    // =========================
+    @Transactional(readOnly = true)
+    public Long getPoints(Long memberId) {
+        Member member = getMember(memberId);
+        return member.getPoint();
+    }
 
-			// 3. DB에서 File 레코드 삭제
-			fileRepository.delete(profileImage);
-		}
-	}
+    // =========================
+    // 회원 포인트 차감 (응모 등)
+    // =========================
+    public Member deductPoints(Long memberId, Long points) {
+        Member member = getMember(memberId);
+
+        if (member.getPoint() < points) {
+            throw new BadRequestException(
+                    "MemberID[" + member.getMember_id() + "] 포인트가 부족합니다."
+            );
+        }
+
+        member.setPoint(member.getPoint() - points);
+
+        // Dirty Checking으로 트랜잭션 내 자동 반영
+        return member;
+    }
 }
