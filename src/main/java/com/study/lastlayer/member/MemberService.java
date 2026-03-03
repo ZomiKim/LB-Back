@@ -13,8 +13,6 @@ import com.study.lastlayer.file.File;
 import com.study.lastlayer.file.FileRepository;
 import com.study.lastlayer.fileupload.FileUploadService;
 
-import java.util.Optional;
-
 // =========================
 // DTO: 회원 정보 업데이트용
 // =========================
@@ -102,7 +100,7 @@ public class MemberService {
 
 
         // 단일 파일 업로드
-        File savedFile = fileUploadService.fileCreateOne(file, 32, 32);
+		File savedFile = fileUploadService.fileCreateOne(file, 64, 64);
         if (savedFile != null) {
             member.setProfileImage(savedFile);
         }
