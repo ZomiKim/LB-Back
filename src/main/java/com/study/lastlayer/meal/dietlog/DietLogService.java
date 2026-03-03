@@ -55,14 +55,19 @@ public class DietLogService {
 		if (dto.getMealId() == null) {
 			throw new IllegalArgumentException("mealId는 필수입니다.");
 		}
+		return create(memberId, dto.getMealId(), null);
+	}
+
+	/** 식단 기록 추가 (내부용: 날짜 직접 지정 가능, null이면 현재 시각) */
+	public DietLogResponseDto create(Long memberId, Long mealId, LocalDateTime dateAt) {
 		Member member = memberRepository.findById(memberId)
 				.orElseThrow(() -> new BadRequestException("회원이 존재하지 않습니다. id=" + memberId));
-		Meal meal = mealRepository.findById(dto.getMealId())
-				.orElseThrow(() -> new BadRequestException("식단이 존재하지 않습니다. id=" + dto.getMealId()));
+		Meal meal = mealRepository.findById(mealId)
+				.orElseThrow(() -> new BadRequestException("식단이 존재하지 않습니다. id=" + mealId));
 		DietLog log = new DietLog();
 		log.setMember(member);
 		log.setMeal(meal);
-		log.setDateAt(dto.getDateAt() != null ? dto.getDateAt() : LocalDateTime.now());
+		log.setDateAt(dateAt != null ? dateAt : LocalDateTime.now());
 		DietLog saved = dietLogRepository.save(log);
 		return DietLogResponseDto.fromEntity(saved);
 	}

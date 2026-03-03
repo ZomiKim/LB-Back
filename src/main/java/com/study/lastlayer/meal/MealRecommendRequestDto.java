@@ -10,14 +10,14 @@ import lombok.Setter;
 /**
  * 추천 식단 생성 요청 DTO
  *
- * memberId와 적용 날짜(dateAt), 식단 유형, 구성 음식 목록을 받습니다.
+ * 로그인한 회원 기준으로, 적용 날짜(dateAt), 식단 유형, 구성 음식 목록을 받습니다.
+ * 클라이언트는 memberId를 전송하지 않습니다.
  */
 @Getter
 @Setter
 @NoArgsConstructor
 public class MealRecommendRequestDto {
 
-	private Long memberId;
 	private LocalDate dateAt; // 추천/적용 날짜 (null이면 오늘)
 
 	/**

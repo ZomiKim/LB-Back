@@ -1,6 +1,7 @@
 package com.study.lastlayer.meal.mealplan;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -13,6 +14,9 @@ import com.study.lastlayer.meal.MealRecommendRequestDto;
 import com.study.lastlayer.meal.MealRecommendResponseDto;
 import com.study.lastlayer.meal.MealResponseDto;
 import com.study.lastlayer.meal.MealService;
+import com.study.lastlayer.meal.dietlog.DietLogRequestDto;
+import com.study.lastlayer.meal.dietlog.DietLogResponseDto;
+import com.study.lastlayer.meal.dietlog.DietLogService;
 import com.study.lastlayer.meal.mealitem.MealItem;
 import com.study.lastlayer.meal.mealitem.MealItemRepository;
 import com.study.lastlayer.member.Member;
@@ -29,6 +33,7 @@ public class MealPlanService {
 	private final MealItemRepository mealItemRepository;
 	private final MemberRepository memberRepository;
 	private final MealService mealService;
+	private final DietLogService dietLogService;
 
 	/**
 	 * 추천 식단 생성
@@ -37,17 +42,17 @@ public class MealPlanService {
 	 * 2) MealItem 여러 개 생성<br>
 	 * 3) MealPlan 생성 (isAccepted=false)
 	 */
-	public MealRecommendResponseDto createRecommendedMeal(MealRecommendRequestDto dto) {
+	public MealRecommendResponseDto createRecommendedMeal(Long memberId, MealRecommendRequestDto dto) {
 
-		if (dto.getMemberId() == null) {
+		if (memberId == null) {
 			throw new IllegalArgumentException("memberId는 필수입니다.");
 		}
 		if (dto.getMealType() == null || dto.getMealType().isEmpty()) {
 			throw new IllegalArgumentException("mealType은 필수입니다.");
 		}
 
-		Member member = memberRepository.findById(dto.getMemberId())
-				.orElseThrow(() -> new BadRequestException("회원이 존재하지 않습니다. id=" + dto.getMemberId()));
+		Member member = memberRepository.findById(memberId)
+				.orElseThrow(() -> new BadRequestException("회원이 존재하지 않습니다. id=" + memberId));
 
 		// 1) Meal 생성
 		Meal meal = mealService.createMealFromRecommend(dto);
@@ -87,6 +92,39 @@ public class MealPlanService {
 				.meal(mealResponse)
 				.items(items)
 				.build();
+	}
+
+	/**
+	 * 추천 식단(MealPlan)을 실제로 '먹겠습니다'로 채택할 때,
+	 * - meal_plan.isAccepted = true 로 변경
+	 * - 해당 회원 + meal + dateAt 기준으로 diet_log 1건 자동 생성
+	 */
+	public DietLogResponseDto acceptMealPlan(Long memberId, Long mealPlanId) {
+		if (memberId == null) {
+			throw new IllegalArgumentException("memberId는 필수입니다.");
+		}
+
+		MealPlan plan = mealPlanRepository.findById(mealPlanId)
+				.orElseThrow(() -> new BadRequestException("추천 식단이 존재하지 않습니다. id=" + mealPlanId));
+
+		if (!plan.getMember().getMember_id().equals(memberId)) {
+			throw new BadRequestException("본인의 추천 식단만 채택할 수 있습니다.");
+		}
+
+		// 이미 채택된 경우 중복 생성 방지
+		if (Boolean.TRUE.equals(plan.getIsAccepted())) {
+			throw new BadRequestException("이미 채택된 추천 식단입니다.");
+		}
+
+		// 1) 채택 처리
+		plan.setIsAccepted(true);
+
+		// 2) diet_log 생성 (plan.dateAt이 있으면 그 날짜 기준, 없으면 현재 시각)
+		LocalDateTime logDateTime = null;
+		if (plan.getDateAt() != null) {
+			logDateTime = plan.getDateAt().atStartOfDay();
+		}
+		return dietLogService.create(memberId, plan.getMeal().getId(), logDateTime);
 	}
 }
 

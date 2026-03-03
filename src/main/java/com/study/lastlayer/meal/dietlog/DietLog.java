@@ -74,4 +74,5 @@ public class DietLog {
     public void onUpdated() {
         this.updatedAt = LocalDateTime.now();
     }
+    
 }

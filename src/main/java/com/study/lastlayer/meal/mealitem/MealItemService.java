@@ -54,6 +54,10 @@ public class MealItemService {
 		item.setFat(dto.getFat() != null ? dto.getFat() : 0);
 		item.setCalories(dto.getCalories() != null ? dto.getCalories() : 0);
 		MealItem saved = mealItemRepository.save(item);
+
+		// Meal의 총 영양 정보 및 대표 메뉴명 업데이트
+		recalculateMealNutrition(meal);
+
 		return MealItemResponseDto.fromEntity(saved);
 	}
 
@@ -63,15 +67,24 @@ public class MealItemService {
 				.orElseThrow(() -> new BadRequestException("식단 항목이 존재하지 않습니다. id=" + id));
 		applyDtoToEntity(dto, item);
 		MealItem saved = mealItemRepository.save(item);
+
+		// Meal의 총 영양 정보 및 대표 메뉴명 업데이트
+		recalculateMealNutrition(saved.getMeal());
+
 		return MealItemResponseDto.fromEntity(saved);
 	}
 
 	/** 식단 항목 삭제 */
 	public void delete(Long id) {
-		if (!mealItemRepository.existsById(id)) {
-			throw new BadRequestException("식단 항목이 존재하지 않습니다. id=" + id);
-		}
-		mealItemRepository.deleteById(id);
+		MealItem item = mealItemRepository.findById(id)
+				.orElseThrow(() -> new BadRequestException("식단 항목이 존재하지 않습니다. id=" + id));
+
+		Meal meal = item.getMeal();
+
+		mealItemRepository.delete(item);
+
+		// Meal의 총 영양 정보 및 대표 메뉴명 업데이트
+		recalculateMealNutrition(meal);
 	}
 
 	private void applyDtoToEntity(MealItemRequestDto dto, MealItem item) {
@@ -93,5 +106,43 @@ public class MealItemService {
 		if (dto.getCalories() != null) {
 			item.setCalories(dto.getCalories());
 		}
+	}
+
+	/**
+	 * 특정 Meal에 속한 모든 MealItem을 조회하여
+	 * - 총 칼로리 및 탄·단·지 합계
+	 * - 첫 번째 항목 이름을 대표 메뉴명으로
+	 * 로 Meal 엔티티를 갱신한다.
+	 */
+	private void recalculateMealNutrition(Meal meal) {
+		if (meal == null || meal.getId() == null) {
+			return;
+		}
+
+		List<MealItem> items = mealItemRepository.findByMealId(meal.getId());
+		int totalCalories = 0;
+		int totalCarb = 0;
+		int totalProtein = 0;
+		int totalFat = 0;
+		String firstItemName = null;
+
+		for (int i = 0; i < items.size(); i++) {
+			MealItem mi = items.get(i);
+			if (i == 0) {
+				firstItemName = mi.getName();
+			}
+			totalCalories += mi.getCalories() != null ? mi.getCalories() : 0;
+			totalCarb += mi.getCarbohydrate() != null ? mi.getCarbohydrate() : 0;
+			totalProtein += mi.getProtein() != null ? mi.getProtein() : 0;
+			totalFat += mi.getFat() != null ? mi.getFat() : 0;
+		}
+
+		meal.setMenu(firstItemName != null ? firstItemName : "");
+		meal.setTotalCalories(totalCalories);
+		meal.setCarbohydrate(totalCarb);
+		meal.setProtein(totalProtein);
+		meal.setFat(totalFat);
+
+		mealRepository.save(meal);
 	}
 }
