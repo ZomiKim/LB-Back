@@ -105,6 +105,15 @@ public class BoardController {
         boardService.deleteBoard(boardId);
         return ResponseEntity.ok().build();
     }
+    
+ // 로그인한 회원이 작성한 게시글 목록
+    @GetMapping("/my")
+    @PreAuthorize("isAuthenticated()")
+    public List<BoardDto> getMyBoards(
+            @AuthenticationPrincipal CustomUserPrincipal principal) {
+
+        return boardService.getMyBoards(principal.getMemberId());
+    }
    
     
 }

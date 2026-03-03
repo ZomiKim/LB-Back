@@ -158,4 +158,33 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     """)
     Optional<BoardDto> findBoardDetailById(@Param("boardId") Long boardId);
 
+//회원별 게시글 조회
+    @Query("""
+    	    SELECT new com.study.lastlayer.board.BoardDto(
+    	        b.id,
+    	        b.board_type,
+    	        b.contents,
+    	        b.createdAt,
+    	        b.deletedAt,
+    	        b.like_count,
+    	        b.title,
+    	        b.updatedAt,
+    	        b.view_count,
+    	        b.club.id,
+    	        bf.id,
+    	        bf.filename,
+    	        m.id,
+    	        m.name,
+    	        pf.filename
+    	    )
+    	    FROM Board b
+    	    JOIN b.member m
+    	    LEFT JOIN b.file bf
+    	    LEFT JOIN m.profileImage pf
+    	    WHERE b.deletedAt IS NULL
+    	      AND m.member_id = :memberId
+    	    ORDER BY b.createdAt DESC
+    	""")
+    	List<BoardDto> findBoardsByMemberId(@Param("memberId") Long memberId);
+
 }
