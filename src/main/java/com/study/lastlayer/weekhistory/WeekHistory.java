@@ -18,7 +18,7 @@ public class WeekHistory {
     private LocalDate date;
 
     @Column(nullable = false)
-    private Double weight;
+    private Float weight;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
@@ -26,7 +26,7 @@ public class WeekHistory {
 
     public WeekHistory() {}
 
-    public WeekHistory(LocalDate date, Double weight, Member member) {
+    public WeekHistory(LocalDate date, Float weight, Member member) {
         this.date = date;
         this.weight = weight;
         this.member = member;
@@ -35,7 +35,7 @@ public class WeekHistory {
     public Long getId() { return id; }
     public LocalDate getDate() { return date; }
     public void setDate(LocalDate date) { this.date = date; }
-    public Double getWeight() { return weight; }
-    public void setWeight(Double weight) { this.weight = weight; }
+    public Float getWeight() { return weight; }
+    public void setWeight(Float weight) { this.weight = weight; }
     public Member getMember() { return member; }
 }

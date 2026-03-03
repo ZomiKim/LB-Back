@@ -12,6 +12,7 @@ import lombok.Getter;
 public class WorkoutResponseDto {
 	
 	private Long id;
+	private Long exerciseId;
 	private String exerciseName;
 	private Integer durationMin;
 	private Integer burntCalories;
@@ -20,6 +21,7 @@ public class WorkoutResponseDto {
 	public static WorkoutResponseDto fromEntity(WorkoutLog log) {
 		return WorkoutResponseDto.builder()
 				.id(log.getId())
+				.exerciseId(log.getExercise().getId())
 				.exerciseName(log.getExercise().getName())
 				.durationMin(log.getDurationMin())
 				.burntCalories(log.getBurntCalories())
