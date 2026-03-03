@@ -208,6 +208,11 @@ public class BoardService {
 
         board.softDelete(); // deletedAt = now()
     }
+
+ // 로그인 회원 기준 게시글 조회
+    public List<BoardDto> getMyBoards(Long memberId) {
+        return boardRepository.findBoardsByMemberId(memberId);
+    }
     
   
  
