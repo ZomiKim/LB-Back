@@ -45,21 +45,6 @@ public class Member {
     @JoinColumn(name = "member_id")
     private AuthUser authUser;
 
-    // ==========================
-    // 🔑 로그인용 필드 추가
-    // ==========================
-    @Column(nullable = false, unique = true)
-    @ColumnDefault("'default_user'") // 기존 null 데이터를 채움
-    private String username;
-
-    @JsonIgnore
-    @Column(nullable = false)
-    @ColumnDefault("'default_pass'") // 기존 null 데이터를 채움
-    private String password;
-
-    // ==========================
-    // 기존 회원 정보
-    // ==========================
     @Column(nullable = false)
     @ColumnDefault("''")
     private String name;
