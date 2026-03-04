@@ -1,5 +1,6 @@
 package com.study.lastlayer.meal;
 
-public class MealRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
 
+public interface MealRepository extends JpaRepository<Meal, Long> {
 }

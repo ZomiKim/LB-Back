@@ -2,6 +2,9 @@ package com.study.lastlayer.meal;
 
 import java.time.LocalDateTime;
 
+
+
+
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Comment;
 
@@ -58,14 +61,16 @@ public class Meal {
 
 	@PrePersist
 	public void onCreated() {
-		this.createdAt = LocalDateTime.now();
+		LocalDateTime now = LocalDateTime.now();
+		this.createdAt = now;
+		this.updatedAt = now;
 	}
 
 	@Column(nullable = false)
 	private LocalDateTime updatedAt;
 
 	@PreUpdate
-	public void onUpdatedd() {
+	public void onUpdated() {
 		this.updatedAt = LocalDateTime.now();
 	}
 
