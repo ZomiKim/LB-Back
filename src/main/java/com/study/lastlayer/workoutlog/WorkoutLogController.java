@@ -33,14 +33,12 @@ public class WorkoutLogController {
     ) {
 
         Long memberId = principal.getMemberId();
-        if (memberId == null) {
-            throw new IllegalArgumentException("로그인된 회원 ID가 없습니다.");
-        }
+        if (memberId == null) throw new IllegalArgumentException("로그인된 회원 ID가 없습니다.");
 
         return workoutLogService.createWorkout(memberId, dto);
     }
 
-    // 운동 기록 조회
+    // 운동 기록 조회 (Pageable)
     @GetMapping
     public Page<WorkoutResponseDto> getWorkouts(
             @AuthenticationPrincipal CustomUserPrincipal principal,
@@ -48,6 +46,15 @@ public class WorkoutLogController {
             Pageable pageable
     ) {
         return workoutLogService.getWorkouts(principal.getMemberId(), sort, pageable);
+    }
+
+    // 운동 기록 조회 (리스트 기반, 하루 안 운동 순서 보장)
+    @GetMapping("/list")
+    public List<WorkoutResponseDto> getWorkoutsList(
+            @AuthenticationPrincipal CustomUserPrincipal principal,
+            @RequestParam(name = "sort", defaultValue = "latest") String sort
+    ) {
+        return workoutLogService.getWorkoutsSorted(principal.getMemberId(), sort);
     }
 
     // 수정
@@ -114,5 +121,12 @@ public class WorkoutLogController {
         return new WorkoutCalcResponseDto(results, totalCalories);
     }
     
-    
+    // 특정 날짜 조회
+    @GetMapping("/date")
+    public List<WorkoutResponseDto> getWorkoutsByDate(
+    		@AuthenticationPrincipal CustomUserPrincipal principal,
+    		@RequestParam("date") LocalDate date
+    		){
+    	return workoutLogService.getWorkoutByDate(principal.getMemberId(), date);
+    }
 }
