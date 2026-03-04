@@ -1,11 +1,24 @@
 package com.study.lastlayer.club;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.study.lastlayer.file.File;
+import com.study.lastlayer.file.FileRepository;
+import com.study.lastlayer.member.Member;
+import com.study.lastlayer.member.MemberRepository;
+
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -13,6 +26,9 @@ import lombok.RequiredArgsConstructor;
 public class ClubServce {
 	
 	private final AllClubListReop allClubListReop;
+	private final ClubRepository clubRepository;
+    private final MemberRepository memberRepository;
+    private final FileRepository fileRepository;
 	
 	 public List<ClubDto> getAllClubList(){
 	        return allClubListReop.findByClubList();
@@ -49,6 +65,8 @@ public class ClubServce {
 
 	    
 	    
+	    
+	    
 	 // 클럽별 회원 많은 순
 	    public List<ClubDto> getAllClubsByMemberCount() {
 	        List<Object[]> results = allClubListReop.findClubsOrderByMemberCount();
@@ -73,15 +91,56 @@ public class ClubServce {
 	    }
 
 	    
-	    
+	    //클럽 검색
 	    public List<ClubDto> searchClubs(String keyword) {
 	        return allClubListReop.searchClubsByKeyword(keyword);
 	    }
-	  
 
+	
 	    
+	    
+	    //클럽 생성
+	    @Transactional
+	    public Long createClub(ClubCreateDto dto, Long memberId) throws Exception {
 
+	        // 멤버 조회
+	        Member manager = memberRepository.findById(memberId)
+	                .orElseThrow(() -> new RuntimeException("멤버가 존재하지 않습니다."));
 
+	        // 파일 처리
+	        File fileEntity = null;
+
+	        if (dto.getFile() != null && !dto.getFile().isEmpty()) {
+
+	            MultipartFile uploadedFile = dto.getFile();
+	            String storedFilename = UUID.randomUUID() + "_" + uploadedFile.getOriginalFilename();
+
+	            String uploadDir = "C:/lastlayer/upload/";
+	            Path savePath = Paths.get(uploadDir + storedFilename);
+	            Files.createDirectories(savePath.getParent());
+	            uploadedFile.transferTo(savePath.toFile());
+
+	            fileEntity = File.builder()
+	                    .filename(storedFilename)
+	                    .org_filename(uploadedFile.getOriginalFilename())
+	                    .build();
+
+	            fileRepository.save(fileEntity);
+	        }
+
+	        // 클럽 생성
+	        Club club = Club.builder()
+	                .name(dto.getName())
+	                .description(dto.getDescription())
+	                .keywords(dto.getKeywords())
+	                .file(fileEntity)   
+	                .member(manager)
+	                .build();
+
+	        clubRepository.save(club);
+
+	        return club.getId();
+	    }
 	 
 	 
 
