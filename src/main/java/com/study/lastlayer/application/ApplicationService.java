@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.study.lastlayer.club.Club;
 import com.study.lastlayer.club.ClubRepository;
+import com.study.lastlayer.clubmember.ClubMember;
+import com.study.lastlayer.clubmember.ClubMemberRepository;
 import com.study.lastlayer.member.Member;
 import com.study.lastlayer.member.MemberService;
 
@@ -20,6 +22,8 @@ public class ApplicationService {
     private final ApplicationRepository applicationRepository;
     private final ClubRepository clubRepository;
     private final MemberService memberService;
+   
+    private final ClubMemberRepository clubMemberRepository;
 
     
     //가입 신청
@@ -109,4 +113,73 @@ public class ApplicationService {
                         .build())
                 .toList();
     }
+
+
+    //승인
+    @Transactional
+    public void approve(Long applicationId) {
+
+        Application application = applicationRepository.findById(applicationId)
+                .orElseThrow(() -> new IllegalArgumentException("신청이 존재하지 않습니다."));
+
+        if (application.getStatus() != ApplicationStatus.PENDING) {
+            throw new IllegalStateException("이미 처리된 신청입니다.");
+        }
+
+        Club club = application.getClub();
+        Member member = application.getMember();
+
+        boolean alreadyMember =
+                clubMemberRepository.existsClubMember(
+                        club.getId(),
+                        member.getMember_id()
+                );
+
+        if (alreadyMember) {
+            throw new IllegalStateException("이미 가입된 멤버입니다.");
+        }
+
+        application.setStatus(ApplicationStatus.APPROVED);
+        application.setCompletedAt(LocalDateTime.now());
+
+        ClubMember clubMember = ClubMember.builder()
+                .club(club)
+                .member(member)
+                .build();
+
+        clubMemberRepository.save(clubMember);
+    }
+
+    
+    
+    
+    //거절
+    @Transactional
+    public void reject(Long applicationId) {
+
+        Application application = applicationRepository.findById(applicationId)
+                .orElseThrow(() -> new IllegalArgumentException("신청이 존재하지 않습니다."));
+
+        if (application.getStatus() != ApplicationStatus.PENDING) {
+            throw new IllegalStateException("이미 처리된 신청입니다.");
+        }
+
+        application.setStatus(ApplicationStatus.REJECTED);
+        application.setCompletedAt(LocalDateTime.now());
+    }
+
+
+    //로그인한 유저의 현재 가입 신청 상태 조회
+    public String getMyStatus(Long clubId, Long memberId) {
+
+        return applicationRepository
+                .findByClubAndMember(clubId, memberId)
+                .map(a -> a.getStatus().name())
+                .orElse("NONE");
+    }
+    
+   
+    
+    
+    
 }
