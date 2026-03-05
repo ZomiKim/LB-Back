@@ -61,10 +61,10 @@ public class BoardController {
         return boardService.getNormalBoardListByClubId(clubId);
     }
     
- // 게시글 단일 조회
+ // 게시글 단일 조회 + 조회수 증가
     @GetMapping("/{boardId}")
-    public BoardDto getBoardDetail(@PathVariable("boardId") Long boardId) {
-        return boardService.getBoardDetail(boardId);
+    public BoardDto getBoardDetailAndIncrement(@PathVariable("boardId") Long boardId) {
+        return boardService.incrementViewCountAndGetDetail(boardId);
     }
     
     // 게시글 작성
@@ -115,5 +115,6 @@ public class BoardController {
         return boardService.getMyBoards(principal.getMemberId());
     }
    
+    
     
 }

@@ -216,7 +216,41 @@ public class BoardService {
     
   
  
-    
+    @Transactional
+    public BoardDto incrementViewCountAndGetDetail(Long boardId) {
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new RuntimeException("게시글이 존재하지 않습니다."));
+
+        // 삭제된 게시글이면 조회수 증가 불가
+        if (board.isDeleted()) {
+            throw new RuntimeException("삭제된 게시글입니다.");
+        }
+
+        // 조회수 증가
+        board.setView_count(board.getView_count() + 1);
+        boardRepository.save(board); // @Transactional + Dirty Checking으로 자동 반영 가능
+
+        // DTO 반환
+        return new BoardDto(
+                board.getId(),
+                board.getBoard_type(),
+                board.getContents(),
+                board.getCreatedAt(),
+                board.getDeletedAt(),
+                board.getLike_count(),
+                board.getTitle(),
+                board.getUpdatedAt(),
+                board.getView_count(),
+                board.getClub().getId(),
+                board.getFile() != null ? board.getFile().getId() : null,
+                board.getFile() != null ? board.getFile().getFilename() : null,
+                board.getMember().getMember_id(),
+                board.getMember().getName(),
+                board.getMember().getProfileImage() != null
+                        ? board.getMember().getProfileImage().getFilename()
+                        : null
+        );
+    }
 	
 
 
