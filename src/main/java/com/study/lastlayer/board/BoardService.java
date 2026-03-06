@@ -1,33 +1,32 @@
 package com.study.lastlayer.board;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.study.lastlayer.club.Club;
 import com.study.lastlayer.club.ClubRepository;
 import com.study.lastlayer.file.File;
 import com.study.lastlayer.file.FileRepository;
+import com.study.lastlayer.fileupload.FileUploadService;
 import com.study.lastlayer.member.Member;
 import com.study.lastlayer.member.MemberRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.UUID;
-
 @Service
 @RequiredArgsConstructor
 public class BoardService {
+
+    @Value("${file.upload-dir}")
+    private String uploadDir;
 
     private final BoardRepository boardRepository;
     private final ClubRepository clubRepository;
@@ -76,9 +75,8 @@ public class BoardService {
             MultipartFile uploadedFile = dto.getFile();
             String storedFilename = UUID.randomUUID() + "_" + uploadedFile.getOriginalFilename();
 
-            // 실제 서버 폴더에 저장
-            String uploadDir = "C:/lastlayer/upload/"; // 필요 시 환경설정으로 변경 가능
-            Path savePath = Paths.get(uploadDir + storedFilename);
+            // 실제 서버 폴더에 저장 (application-prod: /app/upload → 볼륨 /home/upload)
+            Path savePath = Paths.get(uploadDir, storedFilename);
             Files.createDirectories(savePath.getParent());
             uploadedFile.transferTo(savePath.toFile());
 
@@ -151,12 +149,12 @@ public class BoardService {
         if (dto.getFile() != null && !dto.getFile().isEmpty()) {
 
             MultipartFile uploadedFile = dto.getFile();
-            String storedFilename = UUID.randomUUID() + "_" + uploadedFile.getOriginalFilename();
+			String ext = FileUploadService.getFileExtension(uploadedFile.getOriginalFilename());
+			String storedFilename = UUID.randomUUID() + ext;
 
-            String uploadDir = "C:/lastlayer/upload/";
-            Path savePath = Paths.get(uploadDir + storedFilename);
+            Path savePath = Paths.get(uploadDir, storedFilename);
             Files.createDirectories(savePath.getParent());
-            uploadedFile.transferTo(savePath.toFile());
+			uploadedFile.transferTo(savePath.toAbsolutePath().toFile());
 
             File fileEntity = File.builder()
                     .filename(storedFilename)

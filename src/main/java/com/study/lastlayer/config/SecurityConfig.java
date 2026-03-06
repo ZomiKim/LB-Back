@@ -63,8 +63,9 @@ public class SecurityConfig {
 
 		config.setAllowedOrigins(
 				List.of(
-						"http://127.0.0.1:5173",
-						"http://localhost:5173"));
+					"http://front.smartds.tv:5173",		
+					"http://127.0.0.1:5173",
+					"http://localhost:5173"));
 
 		config.setAllowCredentials(true); // 반드시 false 쿠키인증이 필요시 true
 		config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
