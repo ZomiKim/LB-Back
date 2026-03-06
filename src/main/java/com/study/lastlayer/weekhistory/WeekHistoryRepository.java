@@ -2,6 +2,7 @@ package com.study.lastlayer.weekhistory;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,4 +17,6 @@ public interface WeekHistoryRepository extends JpaRepository<WeekHistory, Long> 
 
     List<WeekHistory> findByMemberAndDateBetweenOrderByDateAsc(Member member, LocalDate start, LocalDate end);
     List<WeekHistory> findByMemberAndDateBetweenOrderByDateDesc(Member member, LocalDate start, LocalDate end);
+    
+    Optional<WeekHistory> findByMemberAndDate(Member member, LocalDate date);
 }

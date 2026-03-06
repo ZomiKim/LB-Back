@@ -35,16 +35,21 @@ public class WeekHistoryService {
     public WeekHistoryResponse addWeekHistory(Long memberId, WeekHistoryRequest request) {
 
         Member member = getMember(memberId);
-
-        WeekHistory entity = new WeekHistory(
-                LocalDate.parse(request.date()),
-                request.weight(),
-                member
-        );
-
+        LocalDate date =  LocalDate.parse(request.date());
+        
+        WeekHistory entity = repository.findByMemberAndDate(member, date)
+        		.orElse(null);
+        
+        if (entity != null) {
+        	entity.setWeight(request.weight());
+        	return new WeekHistoryResponse(entity, "같은 날짜 기록이 있어 체중이 수정되었습니다.");
+        }
+        
+        entity =  new WeekHistory(date, request.weight(), member);
         repository.save(entity);
-
+        
         return new WeekHistoryResponse(entity, "체중 기록이 등록되었습니다.");
+       
     }
 
     // 수정
