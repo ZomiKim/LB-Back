@@ -1,0 +1,30 @@
+package com.study.lastlayer.externapi.chatbot;
+
+public class ChatResponseDto {
+	private String question;
+	private String answer;
+	
+	public ChatResponseDto() {}
+	
+	public ChatResponseDto(String question, String answer) {
+		this.question = question;
+		this.answer = answer;
+	}
+	
+	public String getQuestion() {
+		return question;
+	}
+	
+	public void setQuestion(String question) {
+		this.question = question;
+	}
+	
+	public String getAnswer() {
+		return answer;
+	}
+	
+	public void setAnswer(String answer) {
+		this.answer = answer;
+	}
+
+}
