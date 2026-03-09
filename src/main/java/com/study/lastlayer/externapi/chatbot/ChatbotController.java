@@ -1,43 +1,66 @@
 package com.study.lastlayer.externapi.chatbot;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.study.lastlayer.auth.CustomUserPrincipal;
 import com.study.lastlayer.member.Member;
 import com.study.lastlayer.member.MemberService;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @RestController
-@RequestMapping("/api/v1/chatbot")
+@RequestMapping("/services/chatbot")
+@RequiredArgsConstructor
 public class ChatbotController {
 
-    private final String FASTAPI_URL = "http://localhost:8000/api/v1/chatbot/";
+	private final ChatbotService chatbotService;
+	private final MemberService memberService;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+	@PostMapping
+	@PreAuthorize("isAuthenticated()")
+	public ResponseEntity<ChatResponseDto> askChatbot(
+			@AuthenticationPrincipal CustomUserPrincipal principal,
+			@RequestBody ChatRequestDto requestDto) {
 
-    private final MemberService memberService;
+		Member member = memberService.getMember(principal.getMemberId());
 
-    public ChatbotController(MemberService memberService) {
-        this.memberService = memberService;
-    }
+		requestDto.setName(member.getName());
+		requestDto.setPoint(member.getPoint());
+		requestDto.setUserInfo(buildUserInfo(member));
 
-    @PostMapping
-    public ResponseEntity<ChatResponseDto> askChatbot(
-            @AuthenticationPrincipal CustomUserPrincipal principal,
-            @RequestBody ChatRequestDto requestdto) {
+		log.info("ChatbotController userInfo: {}", requestDto.getUserInfo());
 
-        // 로그인 사용자 정보 조회
-        Member member = memberService.getMember(principal.getMemberId());
+		try {
+			ChatResponseDto response = chatbotService.ask(requestDto);
+			return ResponseEntity.ok(response);
+		} catch (RuntimeException e) {
+			log.warn("Chatbot request failed: {}", e.getMessage());
+			throw e;
+		}
+	}
 
-        // DTO에 회원정보 추가
-        requestdto.setName(member.getName());
-        requestdto.setPoint(member.getPoint());
-
-        ChatResponseDto response = restTemplate.postForObject(
-                FASTAPI_URL, requestdto, ChatResponseDto.class);
-
-        return ResponseEntity.ok(response);
-    }
+	private String buildUserInfo(Member member) {
+		return String.format(
+				"사용자 정보 성별: %s, 생년월일: %s, 키: %.1fcm, 현재 체중: %.1fkg, " +
+						"목표: %s, 목표 체중: %.1fkg, 목표 기간: %d일, " +
+						"알레르기 정보: %s, 특이사항: %s, 일일 권장 칼로리: %d kcal",
+				"M".equalsIgnoreCase(member.getGender()) ? "남성" : "여성",
+				member.getBirthday().toString(),
+				member.getHeight(),
+				member.getWeight(),
+				member.getGoal(),
+				member.getGoal_weight(),
+				member.getTarget_date(),
+				(member.getAllergies() == null || member.getAllergies().isEmpty()) ? "없음" : member.getAllergies(),
+				(member.getSpecial_notes() == null || member.getSpecial_notes().isEmpty()) ? "없음" : member.getSpecial_notes(),
+				member.getDaily_calories());
+	}
 }
