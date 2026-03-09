@@ -2,6 +2,7 @@ package com.study.lastlayer.member;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -124,6 +125,12 @@ public class MemberService {
             fileRepository.delete(profileImage);
         }
     }
+
+	// 모든 회원 조회
+	@Transactional(readOnly = true)
+	public List<Member> getAllMembers() {
+		return memberRepository.findAll();
+	}
 
     // =========================
     // 회원 포인트 조회
