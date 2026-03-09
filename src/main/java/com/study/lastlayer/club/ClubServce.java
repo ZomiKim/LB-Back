@@ -1,20 +1,19 @@
 package com.study.lastlayer.club;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.study.lastlayer.file.File;
 import com.study.lastlayer.file.FileRepository;
+import com.study.lastlayer.fileupload.FileUploadService;
 import com.study.lastlayer.member.Member;
 import com.study.lastlayer.member.MemberRepository;
 
@@ -24,7 +23,10 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class ClubServce {
-	
+
+	@Value("${file.upload-dir}")
+	private String uploadDir;
+
 	private final AllClubListReop allClubListReop;
 	private final ClubRepository clubRepository;
     private final MemberRepository memberRepository;
@@ -113,12 +115,12 @@ public class ClubServce {
 	        if (dto.getFile() != null && !dto.getFile().isEmpty()) {
 
 	            MultipartFile uploadedFile = dto.getFile();
-	            String storedFilename = UUID.randomUUID() + "_" + uploadedFile.getOriginalFilename();
+				String ext = FileUploadService.getFileExtension(uploadedFile.getOriginalFilename());
+				String storedFilename = UUID.randomUUID() + ext;
 
-	            String uploadDir = "C:/lastlayer/upload/";
-	            Path savePath = Paths.get(uploadDir + storedFilename);
+	            Path savePath = Paths.get(uploadDir, storedFilename);
 	            Files.createDirectories(savePath.getParent());
-	            uploadedFile.transferTo(savePath.toFile());
+				uploadedFile.transferTo(savePath.toAbsolutePath().toFile());
 
 	            fileEntity = File.builder()
 	                    .filename(storedFilename)
