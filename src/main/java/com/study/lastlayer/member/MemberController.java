@@ -1,8 +1,11 @@
 package com.study.lastlayer.member;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,9 +23,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.study.lastlayer.auth.CustomUserPrincipal;
 import com.study.lastlayer.file.File;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @RestController
 public class MemberController {
@@ -89,6 +89,16 @@ public class MemberController {
             "point", member.getPoint()
         ));
     }
+
+	/**
+	 * 모든 회원 정보 조회 API
+	 */
+	@GetMapping("/members")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<List<Member>> getAllMembers() {
+		List<Member> members = memberService.getAllMembers();
+		return ResponseEntity.ok(members);
+	}
 
     /**
      * 로그인한 회원 포인트 증감 (적립 + 차감 통합)
