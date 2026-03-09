@@ -32,4 +32,18 @@ public class ClubMemberService {
                     .build())
             .collect(Collectors.toList());
     }
+
+	
+    //전체 클럽 멤버 리스트
+    public List<ClubMemberSimpleDto> getAllClubMembers() {
+        return clubMemberRepository.findAll()
+                .stream()
+                .map(cm -> ClubMemberSimpleDto.builder()
+                        .id(cm.getId())
+                        .clubId(cm.getClub().getId())
+                        .memberId(cm.getMember().getMember_id())
+                        .build())
+                .toList();
+    }
+    
 }

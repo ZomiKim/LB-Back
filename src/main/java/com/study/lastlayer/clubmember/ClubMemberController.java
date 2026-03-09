@@ -28,4 +28,11 @@ public class ClubMemberController {
         List<ClubMemberDto> myClubs = clubMemberService.getClubsByMember(member);
         return ResponseEntity.ok(myClubs);
     }
+    
+    //전체 클럽 멤버 리스트
+    @GetMapping("/all")
+    public ResponseEntity<List<ClubMemberSimpleDto>> getAllClubMembers() {
+        return ResponseEntity.ok(clubMemberService.getAllClubMembers());
+    }
+    
 }
