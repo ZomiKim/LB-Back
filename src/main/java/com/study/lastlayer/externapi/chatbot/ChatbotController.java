@@ -32,8 +32,6 @@ public class ChatbotController {
 
 		Member member = memberService.getMember(principal.getMemberId());
 
-		requestDto.setName(member.getName());
-		requestDto.setPoint(member.getPoint());
 		requestDto.setUserInfo(buildUserInfo(member));
 
 		log.info("ChatbotController userInfo: {}", requestDto.getUserInfo());
@@ -49,9 +47,9 @@ public class ChatbotController {
 
 	private String buildUserInfo(Member member) {
 		return String.format(
-				"사용자 정보 성별: %s, 생년월일: %s, 키: %.1fcm, 현재 체중: %.1fkg, " +
-						"목표: %s, 목표 체중: %.1fkg, 목표 기간: %d일, " +
-						"알레르기 정보: %s, 특이사항: %s, 일일 권장 칼로리: %d kcal",
+				"성별:%s, 생년월일:%s, 키:%.1fcm, 현재 체중:%.1fkg, " +
+						"목표:%s, 목표 체중:%.1fkg, 목표 기간:%d일, " +
+						"알레르기 정보:%s, 특이사항:%s, 일일 권장 칼로리:%d kcal",
 				"M".equalsIgnoreCase(member.getGender()) ? "남성" : "여성",
 				member.getBirthday().toString(),
 				member.getHeight(),

@@ -10,7 +10,5 @@ import lombok.NoArgsConstructor;
 public class ChatRequestDto {
 
 	private String question;
-	private String name;
-	private Long point;
 	private String userInfo;
 }
