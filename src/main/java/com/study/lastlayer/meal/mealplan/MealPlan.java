@@ -58,7 +58,7 @@ public class MealPlan {
 
     @Column(name = "is_accepted", nullable = false)
     @ColumnDefault("0") // MySQL 기준 false=0
-    @Comment("실제 식단으로 채택 여부")
+    @Comment("실제 식단으로 채택 여부. true로 변경 시 MealPlanService.acceptMealPlan()에서 diet_log 1건 생성")
     private Boolean isAccepted = false;
 
     @Column(nullable = false)

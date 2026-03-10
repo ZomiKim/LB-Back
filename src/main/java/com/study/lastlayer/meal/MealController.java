@@ -15,6 +15,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.study.lastlayer.auth.CustomUserPrincipal;
+import com.study.lastlayer.externapi.mealcalorie.CaloriesCalculationRequest;
+import com.study.lastlayer.externapi.mealcalorie.CaloriesCalculationResponse;
+import com.study.lastlayer.externapi.mealcalorie.MealCaloriesService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -24,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 public class MealController {
 
 	private final MealService mealService;
+	private final MealCaloriesService mealCaloriesService;
 
 	/** 식단 목록 조회 (로그인 사용자 기준) */
 	@GetMapping
@@ -61,6 +65,18 @@ public class MealController {
 			@AuthenticationPrincipal CustomUserPrincipal principal,
 			@RequestBody MealWithItemsRequestDto dto) {
 		return mealService.createMealWithItems(principal.getMemberId(), dto);
+	}
+
+	/**
+	 * FastAPI( C:\\kmh\\lbpython\\app )의 POST /api/v1/meal/calculate-calories 프록시
+	 * - 음식 이름 + 섭취량(g) 목록을 보내면, 항목별 추정 칼로리/영양소와 총 칼로리를 반환합니다.
+	 */
+	@PostMapping("/calculate-calories")
+	public CaloriesCalculationResponse calculateCalories(
+			@AuthenticationPrincipal CustomUserPrincipal principal,
+			@RequestBody CaloriesCalculationRequest request) {
+		// 로그인 체크는 @PreAuthorize 등이 없더라도 principal 주입으로 강제됨(인증 미통과 시 null)
+		return mealCaloriesService.calculate(request);
 	}
 
 	/** 식단 수정 */

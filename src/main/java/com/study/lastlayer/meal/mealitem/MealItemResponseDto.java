@@ -20,6 +20,12 @@ public class MealItemResponseDto {
 	private Integer protein;
 	private Integer fat;
 	private Integer calories;
+	/**
+	 * 추천 API로 저장된 재료 목록.
+	 * - DB에는 JSON 배열 문자열(TEXT)로 저장되어 있어 그대로 내려줍니다.
+	 * - 프론트에서 JSON.parse로 List로 변환해 사용하면 됩니다.
+	 */
+	private String ingredients;
 	private LocalDateTime createdAt;
 	private LocalDateTime updatedAt;
 
@@ -33,6 +39,7 @@ public class MealItemResponseDto {
 				.protein(entity.getProtein() != null ? entity.getProtein() : 0)
 				.fat(entity.getFat() != null ? entity.getFat() : 0)
 				.calories(entity.getCalories() != null ? entity.getCalories() : 0)
+				.ingredients(entity.getIngredients())
 				.createdAt(entity.getCreatedAt())
 				.updatedAt(entity.getUpdatedAt())
 				.build();

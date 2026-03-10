@@ -1,6 +1,7 @@
 package com.study.lastlayer.meal;
 
 import java.util.List;
+import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -138,30 +139,17 @@ public class MealService {
 			mealItemRepository.save(item);
 		}
 
-		// 5) diet_log 생성 (회원 + 방금 생성한 Meal 기준, 날짜는 현재 시각)
-		dietLogService.create(memberId, savedMeal.getId(), null);
+		// 5) diet_log 생성 (회원 + 방금 생성한 Meal 기준, 날짜는 요청 date가 있으면 그 날짜로 저장)
+		LocalDateTime dateAt = dto.getDate() != null ? dto.getDate().atStartOfDay() : null;
+		dietLogService.create(memberId, savedMeal.getId(), dateAt);
 
 		return MealResponseDto.fromEntity(savedMeal);
 	}
 
 	/**
-	 * 추천/직접 입력 DTO를 기반으로 Meal 엔티티만 생성하는 내부용 메서드.
-	 * (MealPlanService에서 재사용)
+	 * 외부 추천 결과 등, 이미 구성된 Meal 엔티티를 그대로 저장하고 싶을 때 사용할 수 있는 헬퍼 메서드입니다.
 	 */
-	public Meal createMealFromRecommend(MealRecommendRequestDto dto) {
-		Meal meal = new Meal();
-		meal.setMealType(dto.getMealType().charAt(0));
-		meal.setMenu(dto.getMenu() != null ? dto.getMenu() : "");
-
-		// 총 칼로리는 요청에서 직접 받지 않는 경우, 아이템 합산 등의 로직을
-		// 이후에 넣을 수 있도록 일단 0으로 두거나, 추후 확장 가능하게 둔다.
-		meal.setTotalCalories(0);
-
-		meal.setCarbohydrate(0);
-		meal.setFat(0);
-		meal.setProtein(0);
-		meal.setComment("");
-
+	public Meal saveMeal(Meal meal) {
 		return mealRepository.save(meal);
 	}
 
