@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -43,7 +45,7 @@ public class MealPlanController {
 	private final MemberRepository memberRepository;
 
 	/**
-	 * 추천 식단 채택 ('먹겠습니다')
+	 * 추천 식단 채택 ('먹겠습니다') — 단건
 	 * - 로그인한 유저 기준 (principal에서 memberId 사용, 클라이언트는 memberId 보낼 필요 없음)
 	 */
 	@PostMapping("/{id}/accept")
@@ -52,6 +54,16 @@ public class MealPlanController {
 			@AuthenticationPrincipal CustomUserPrincipal principal,
 			@PathVariable("id") Long id) {
 		return mealPlanService.acceptMealPlan(principal.getMemberId(), id);
+	}
+
+	/**
+	 * 오늘 추천받은 아침·점심·저녁을 한 번에 모두 채택하고 diet_log에 각 1건씩 저장합니다.
+	 * - 이미 채택된 건은 제외, 미채택만 채택 후 diet_log 생성
+	 */
+	@PostMapping("/today/accept")
+	@ResponseStatus(HttpStatus.CREATED)
+	public List<DietLogResponseDto> acceptTodayMealPlans(@AuthenticationPrincipal CustomUserPrincipal principal) {
+		return mealPlanService.acceptAllMealPlansForDate(principal.getMemberId(), LocalDate.now());
 	}
 
 	/**
@@ -70,17 +82,17 @@ public class MealPlanController {
 	@GetMapping
 	public List<MealPlanResponseDto> getMealPlansByDate(
 			@AuthenticationPrincipal CustomUserPrincipal principal,
-			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+			@RequestParam(name = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
 		return mealPlanService.getMealPlansByDate(principal.getMemberId(), date);
 	}
 
 	/**
 	 * 오늘 날짜 기준으로 아침/점심/저녁 추천 식단을 한 번에 생성하는 API.
 	 * - 로그인한 사용자 기준 (principal에서 회원 정보 사용, 클라이언트는 memberId 보낼 필요 없음)
+	 * - 응답: /services/dietrecommendation/recommend 와 동일한 추천 결과 JSON (goal, breakfast, lunch, dinner, comment, cautions 등)
 	 */
-	@PostMapping("/recommend/today")
-	@ResponseStatus(HttpStatus.CREATED)
-	public void recommendTodayMeals(@AuthenticationPrincipal CustomUserPrincipal principal) {
+	@PostMapping(value = "/recommend/today", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<String> recommendTodayMeals(@AuthenticationPrincipal CustomUserPrincipal principal) {
 		Long memberId = principal.getMemberId();
 		Member member = memberRepository.findById(memberId)
 				.orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다. id=" + memberId));
@@ -88,15 +100,19 @@ public class MealPlanController {
 		LocalDate today = LocalDate.now();
 		String pythonJson = dietRecommendationService.recommendDailyMeal(member);
 		mealPlanService.createRecommendedMealsFromPythonJson(memberId, pythonJson, today);
+
+		return ResponseEntity.status(HttpStatus.CREATED)
+				.contentType(MediaType.APPLICATION_JSON)
+				.body(pythonJson);
 	}
 
 	/**
 	 * 전체 다시 받기: 오늘 날짜의 기존 추천 식단을 삭제한 뒤, 파이썬에서 새로 추천받아 meal/meal_item/meal_plan에 저장합니다.
 	 * - 이미 채택(accept)한 식단이 있으면 400 예외 (전체 다시 받기 불가).
+	 * - 응답: 추천 결과 JSON (goal, breakfast, lunch, dinner, comment, cautions 등)
 	 */
-	@PostMapping("/recommend/today/replace")
-	@ResponseStatus(HttpStatus.CREATED)
-	public void replaceTodayRecommendations(@AuthenticationPrincipal CustomUserPrincipal principal) {
+	@PostMapping(value = "/recommend/today/replace", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<String> replaceTodayRecommendations(@AuthenticationPrincipal CustomUserPrincipal principal) {
 		Long memberId = principal.getMemberId();
 		Member member = memberRepository.findById(memberId)
 				.orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다. id=" + memberId));
@@ -106,6 +122,10 @@ public class MealPlanController {
 
 		String pythonJson = dietRecommendationService.recommendDailyMeal(member);
 		mealPlanService.createRecommendedMealsFromPythonJson(memberId, pythonJson, today);
+
+		return ResponseEntity.status(HttpStatus.CREATED)
+				.contentType(MediaType.APPLICATION_JSON)
+				.body(pythonJson);
 	}
 }
 

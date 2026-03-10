@@ -53,3 +53,8 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+// LocalDate 등 @RequestParam 이름을 리플렉션으로 사용하기 위해 파라미터 이름 보존
+tasks.withType(JavaCompile).configureEach {
+	options.compilerArgs.add('-parameters')
+}

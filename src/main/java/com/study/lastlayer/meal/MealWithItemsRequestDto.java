@@ -1,5 +1,6 @@
 package com.study.lastlayer.meal;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import com.study.lastlayer.meal.mealitem.MealItemRequestDto;
@@ -21,6 +22,9 @@ public class MealWithItemsRequestDto {
 
 	/** 식사 유형 (B: 아침, L: 점심, D: 저녁, S: 간식) */
 	private String mealType;
+
+	/** 기록 날짜 (선택). 지정하면 diet_log.date_at을 해당 날짜로 저장합니다. */
+	private LocalDate date;
 
 	/** 이미지 파일 ID (선택) */
 	private Long imageFileId;

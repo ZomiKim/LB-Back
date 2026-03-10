@@ -1,6 +1,7 @@
 package com.study.lastlayer.meal;
 
 import java.util.List;
+import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -138,8 +139,9 @@ public class MealService {
 			mealItemRepository.save(item);
 		}
 
-		// 5) diet_log 생성 (회원 + 방금 생성한 Meal 기준, 날짜는 현재 시각)
-		dietLogService.create(memberId, savedMeal.getId(), null);
+		// 5) diet_log 생성 (회원 + 방금 생성한 Meal 기준, 날짜는 요청 date가 있으면 그 날짜로 저장)
+		LocalDateTime dateAt = dto.getDate() != null ? dto.getDate().atStartOfDay() : null;
+		dietLogService.create(memberId, savedMeal.getId(), dateAt);
 
 		return MealResponseDto.fromEntity(savedMeal);
 	}

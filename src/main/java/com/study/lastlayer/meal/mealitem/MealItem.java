@@ -69,6 +69,10 @@ public class MealItem {
     @Comment("해당 음식의 칼로리 (kcal)")
     private Integer calories = 0;
 
+    @Column(columnDefinition = "TEXT")
+    @Comment("재료 목록 (JSON 배열 문자열). 예: [\"계란 2개\", \"피망 1/4개\"]. 추천 API ingredients를 원본 그대로 저장")
+    private String ingredients;
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
