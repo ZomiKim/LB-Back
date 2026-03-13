@@ -4,6 +4,9 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +37,9 @@ public class AuthService {
 	private final MemberRepository memberRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final JwtUtil jwtUtil;
+
+	@Value("${jwt.refresh.expiration}")
+	private long refreshExpirationMinutes;
 
 	// 명시적 생성자 주입
 	public AuthService(AuthUserRepository authUserRepository, MemberRepository memberRepository,
@@ -75,16 +81,24 @@ public class AuthService {
 		return userDto;
 	}
 
-	void setRefreshToken(String email, HttpServletResponse response) {
-		// 2. RefreshToken을 쿠키로 굽기
-		String refreshToken = jwtUtil.createToken(email, 10080L); // 24시간 : 60 * 24L, 1주일 : 10080L
+	// static으로 선언하여 어디서든 공통으로 사용
+	public static ResponseCookie createRefreshTokenCookie(String token, long maxAge) {
+		return ResponseCookie.from("refreshToken", token)
+				.path("/api/lastlayer/auth") // /api/lastlayer/auth
+				.httpOnly(true)
+				.secure(true) // 실무 환경(HTTPS) 필수
+				.sameSite("Lax")
+				.maxAge(maxAge)
+				.build();
+	}
 
-		jakarta.servlet.http.Cookie refreshTokenCookie = new jakarta.servlet.http.Cookie("refreshToken", refreshToken);
-		refreshTokenCookie.setHttpOnly(true);
-		refreshTokenCookie.setPath("/"); // server.servlet.context-path에서 설정한 것은 무시
-		refreshTokenCookie.setMaxAge(60 * 60 * 24); // 24시간
-		refreshTokenCookie.setAttribute("SameSite", "Lax"); // Lax : 외부 사이트에서 링크 클릭 (GET) 허용. 예) 이메일로 "비밀번호 변경" 링크
-		response.addCookie(refreshTokenCookie);
+	void setRefreshToken(String email, HttpServletResponse response) {
+		String refreshToken = jwtUtil.createToken(email, refreshExpirationMinutes);
+
+		// 쿠키 생성 (24시간 = 24 * 60 * 60)
+		ResponseCookie cookie = createRefreshTokenCookie(refreshToken, 24 * 60 * 60);
+
+		response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 	}
 
 	@Transactional

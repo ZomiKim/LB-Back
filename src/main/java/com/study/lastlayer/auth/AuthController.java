@@ -36,14 +36,8 @@ public class AuthController {
 
 	@PostMapping("/logout")
 	public ResponseEntity<?> logout(HttpServletResponse response) {
-		// 기존 쿠키와 동일한 설정(Path, Domain 등)으로 만료 쿠키 생성
-		ResponseCookie cookie = ResponseCookie.from("refreshToken", null)
-				.path("/")
-				.httpOnly(true)
-				.secure(true)
-				.sameSite("Lax")
-				.maxAge(0) // 유효기간을 0으로 설정하여 삭제 유도
-				.build();
+		// 쿠키 삭제용 (maxAge 0)
+		ResponseCookie cookie = AuthService.createRefreshTokenCookie(null, 0);
 
 		response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 		SecurityContextHolder.clearContext();
