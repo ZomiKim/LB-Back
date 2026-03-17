@@ -1,0 +1,13 @@
+services:
+  app:
+    # 자신의 Docker Hub ID를 직접 적으세요
+    image: hakchulk/lb-api:latest
+    container_name: lb-server
+    ports:
+      - "8080:8080"
+    volumes:
+      - /home/upload:/app/upload
+    environment:
+      - TZ=Asia/Seoul
+    # Dockerfile의 ENTRYPOINT 인자 추가
+    #command: ["--file.upload-dir=/app/upload"]
